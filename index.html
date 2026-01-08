@@ -1,12 +1,569 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ModelMe</title>
-  </head>
-  <body>
-    <h1>ModelMe</h1>
-    <p>Site is live.</p>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Model Me</title>
+  <meta name="description" content="Model Me — interactive 3D landing page" />
+  <style>
+    :root{
+      --bg0: #070910;
+      --bg1: #0b1020;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --line: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.45);
+      --accent: 120 100% 65%;
+      --accent2: 260 100% 70%;
+    }
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      overflow-x: hidden;
+      background: radial-gradient(1200px 900px at 20% 10%, rgba(140,120,255,.22), transparent 60%),
+                  radial-gradient(900px 700px at 80% 30%, rgba(60,255,200,.18), transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+    }
+
+    /* soft animated glow */
+    .glow {
+      position: fixed;
+      inset: -40vmax;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(60,255,200,.18), transparent 40%),
+        radial-gradient(circle at 70% 40%, rgba(140,120,255,.20), transparent 45%),
+        radial-gradient(circle at 50% 75%, rgba(255,120,200,.10), transparent 50%);
+      filter: blur(40px);
+      animation: drift 16s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .9;
+    }
+    @keyframes drift{
+      from { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+      to   { transform: translate3d(2%, 1%, 0) scale(1.06); }
+    }
+
+    /* particle canvas */
+    canvas#particles{
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: .8;
+    }
+
+    /* layout */
+    .wrap{
+      position: relative;
+      z-index: 2;
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 28px 18px;
+    }
+
+    .topbar{
+      position: fixed;
+      top: 14px; left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: rgba(8,10,18,.45);
+      backdrop-filter: blur(10px);
+      border-radius: 999px;
+      box-shadow: 0 10px 30px var(--shadow);
+      z-index: 3;
+      align-items: center;
+    }
+    .pill{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      font-size: 13px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      cursor: default;
+      user-select: none;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: hsl(var(--accent));
+      box-shadow: 0 0 0 6px rgba(60,255,200,.12), 0 0 18px rgba(60,255,200,.35);
+    }
+
+    /* 3D hero card */
+    .scene{
+      width: min(980px, 96vw);
+      perspective: 900px;
+    }
+    .card{
+      position: relative;
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow:
+        0 28px 70px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.12);
+      padding: 54px 36px 34px;
+      transform-style: preserve-3d;
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+      transition: transform 180ms ease, border-color 200ms ease;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(800px 240px at var(--mx,50%) var(--my,50%),
+        rgba(60,255,200,.20), transparent 55%),
+        radial-gradient(600px 260px at calc(var(--mx,50%) + 18%) calc(var(--my,50%) - 18%),
+        rgba(140,120,255,.22), transparent 60%);
+      opacity:.9;
+      filter: blur(10px);
+      transform: translateZ(-1px);
+      pointer-events:none;
+    }
+    .card::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        linear-gradient(120deg, rgba(255,255,255,.06), transparent 30%),
+        radial-gradient(1000px 400px at 10% 0%, rgba(255,255,255,.06), transparent 50%);
+      mix-blend-mode: overlay;
+      opacity:.7;
+      pointer-events:none;
+    }
+
+    /* 3D title */
+    .title{
+      margin: 0;
+      font-size: clamp(44px, 8vw, 86px);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.0;
+      transform: translateZ(48px);
+      position: relative;
+      text-align: center;
+    }
+    .title span{
+      display: inline-block;
+      background: linear-gradient(90deg,
+        hsl(var(--accent)) 0%,
+        rgba(255,255,255,.92) 40%,
+        hsl(var(--accent2)) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 14px 30px rgba(0,0,0,.55));
+    }
+    /* faux 3D extrusion using stacked shadows */
+    .title span{
+      text-shadow:
+        0 1px 0 rgba(0,0,0,.35),
+        0 2px 0 rgba(0,0,0,.28),
+        0 3px 0 rgba(0,0,0,.22),
+        0 4px 0 rgba(0,0,0,.18),
+        0 10px 30px rgba(0,0,0,.55);
+    }
+
+    .subtitle{
+      margin: 16px auto 0;
+      max-width: 56ch;
+      text-align: center;
+      color: var(--muted);
+      font-size: 15.5px;
+      line-height: 1.6;
+      transform: translateZ(32px);
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 22px 0 0;
+      transform: translateZ(26px);
+    }
+    .chip{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.78);
+      font-size: 13px;
+      user-select: none;
+      cursor: pointer;
+      transition: transform 120ms ease, background 200ms ease, border-color 200ms ease;
+    }
+    .chip:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.18);
+    }
+
+    .actions{
+      display:flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 28px;
+      transform: translateZ(24px);
+      flex-wrap: wrap;
+    }
+    .btn{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: transform 140ms ease, background 200ms ease, border-color 200ms ease;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 160px;
+      justify-content:center;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.22);
+    }
+    .btn.primary{
+      background: linear-gradient(90deg,
+        rgba(60,255,200,.18),
+        rgba(140,120,255,.18));
+      border-color: rgba(255,255,255,.22);
+    }
+    .btn svg{ opacity: .9; }
+
+    .footer{
+      margin-top: 28px;
+      text-align:center;
+      color: rgba(255,255,255,.45);
+      font-size: 12.5px;
+      transform: translateZ(12px);
+    }
+
+    /* modal */
+    .modal{
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      z-index: 50;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(8px);
+      padding: 22px;
+    }
+    .modal.open{ display: grid; }
+    .modalCard{
+      width: min(640px, 95vw);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(14,16,28,.75);
+      box-shadow: 0 30px 80px rgba(0,0,0,.6);
+      overflow: hidden;
+    }
+    .modalHead{
+      padding: 16px 18px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .modalTitle{
+      margin:0;
+      font-size: 14px;
+      color: rgba(255,255,255,.85);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .close{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.85);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .modalBody{
+      padding: 18px;
+      color: rgba(255,255,255,.75);
+      line-height: 1.6;
+      font-size: 14.5px;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.10);
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,.82);
+    }
+
+    /* mobile tweaks */
+    @media (max-width: 520px){
+      .card{ padding: 44px 18px 26px; border-radius: 22px; }
+      .btn{ min-width: 140px; }
+      .topbar{ gap: 8px; padding: 8px 10px; }
+      .pill{ font-size: 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <div class="topbar">
+    <div class="pill"><span class="dot"></span> Live • Interactive</div>
+    <div class="pill">Tip: move your mouse</div>
+    <div class="pill">Press <span class="kbd">?</span></div>
+  </div>
+
+  <main class="wrap">
+    <section class="scene" aria-label="Model Me hero">
+      <div class="card" id="card">
+        <h1 class="title" aria-label="Model Me">
+          <span>MODEL&nbsp;ME</span>
+        </h1>
+
+        <p class="subtitle" id="subtitle">
+          A clean, modern landing page with a 3D tilt effect, ambient particles, and a few interactive touches.
+          Swap this text for your actual product line in 10 seconds.
+        </p>
+
+        <div class="chips" id="chips">
+          <div class="chip" data-text="Create a personalised model profile — fast.">Personalise</div>
+          <div class="chip" data-text="Clean UI, strong vibes, zero clutter.">Aesthetic</div>
+          <div class="chip" data-text="Responsive by default — works on phone and desktop.">Responsive</div>
+          <div class="chip" data-text="Built on GitHub Pages — ship updates instantly.">Instant Deploy</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="startBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8 5v14l11-7-11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+            Get Started
+          </button>
+
+          <button class="btn" id="aboutBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 10v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M12 7h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            What is this?
+          </button>
+        </div>
+
+        <div class="footer">
+          <span id="status">Hover the card • Click a pill • Press “?”</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="About Model Me">
+    <div class="modalCard">
+      <div class="modalHead">
+        <h3 class="modalTitle">Model Me</h3>
+        <button class="close" id="closeBtn">Close</button>
+      </div>
+      <div class="modalBody">
+        <p>
+          This is a single-file landing page: HTML + CSS + JS. It includes:
+        </p>
+        <ul>
+          <li>3D tilt + spotlight that follows your cursor</li>
+          <li>Ambient particles</li>
+          <li>Clickable “feature chips” that change the subtitle</li>
+          <li>A lightweight modal (<span class="kbd">?</span>)</li>
+        </ul>
+        <p>
+          Next: replace the subtitle and wire the <strong>Get Started</strong> button to your real flow.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- 3D tilt + spotlight ---
+    const card = document.getElementById('card');
+    const status = document.getElementById('status');
+
+    function setTilt(e){
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const px = x / rect.width;
+      const py = y / rect.height;
+
+      const max = 10; // degrees
+      const ry = (px - 0.5) * max * 2;
+      const rx = -(py - 0.5) * max * 2;
+
+      card.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+      card.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+      card.style.setProperty('--mx', (px*100).toFixed(1) + '%');
+      card.style.setProperty('--my', (py*100).toFixed(1) + '%');
+
+      status.textContent = `Tilt: ${rx.toFixed(1)}°, ${ry.toFixed(1)}°`;
+    }
+
+    function resetTilt(){
+      card.style.setProperty('--rx', '0deg');
+      card.style.setProperty('--ry', '0deg');
+      card.style.setProperty('--mx', '50%');
+      card.style.setProperty('--my', '50%');
+      status.textContent = 'Hover the card • Click a pill • Press “?”';
+    }
+
+    card.addEventListener('mousemove', setTilt);
+    card.addEventListener('mouseleave', resetTilt);
+
+    // --- feature chips update subtitle ---
+    const subtitle = document.getElementById('subtitle');
+    const chips = document.getElementById('chips');
+    chips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if(!chip) return;
+      const t = chip.getAttribute('data-text');
+      subtitle.textContent = t;
+
+      // quick pop animation
+      chip.animate([
+        { transform: 'translateY(0px) scale(1)' },
+        { transform: 'translateY(-2px) scale(1.03)' },
+        { transform: 'translateY(0px) scale(1)' }
+      ], { duration: 220, easing: 'ease-out' });
+    });
+
+    // --- modal ---
+    const modal = document.getElementById('modal');
+    const aboutBtn = document.getElementById('aboutBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const startBtn = document.getElementById('startBtn');
+
+    function openModal(){ modal.classList.add('open'); }
+    function closeModal(){ modal.classList.remove('open'); }
+
+    aboutBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if(e.target === modal) closeModal();
+    });
+
+    // keyboard shortcut
+    window.addEventListener('keydown', (e) => {
+      if(e.key === '?' || (e.shiftKey && e.key === '/')) openModal();
+      if(e.key === 'Escape') closeModal();
+    });
+
+    // --- Get Started button: fake "scroll / pulse" for now ---
+    startBtn.addEventListener('click', () => {
+      status.textContent = 'Get Started clicked — hook this to your real flow.';
+      card.animate([
+        { transform: card.style.transform || 'translateZ(0)' },
+        { transform: 'scale(1.01)' },
+        { transform: 'scale(1.00)' }
+      ], { duration: 260, easing: 'ease-out' });
+    });
+
+    // --- particles ---
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let w, h, dpr;
+
+    function resize(){
+      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      w = canvas.width = Math.floor(innerWidth * dpr);
+      h = canvas.height = Math.floor(innerHeight * dpr);
+      canvas.style.width = innerWidth + 'px';
+      canvas.style.height = innerHeight + 'px';
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const count = Math.round(Math.min(140, Math.max(60, innerWidth / 10)));
+    const pts = Array.from({length: count}, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: (Math.random() * 1.4 + 0.6) * dpr,
+      vx: (Math.random() - 0.5) * 0.25 * dpr,
+      vy: (Math.random() - 0.5) * 0.25 * dpr,
+      a: Math.random() * 0.6 + 0.2
+    }));
+
+    let mouse = { x: w/2, y: h/2 };
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX * dpr;
+      mouse.y = e.clientY * dpr;
+    });
+
+    function step(){
+      ctx.clearRect(0,0,w,h);
+
+      // subtle link lines
+      for(let i=0;i<pts.length;i++){
+        const p = pts[i];
+        p.x += p.vx; p.y += p.vy;
+
+        // drift toward mouse slightly
+        const dx = mouse.x - p.x;
+        const dy = mouse.y - p.y;
+        p.x += dx * 0.00008;
+        p.y += dy * 0.00008;
+
+        if(p.x < -50) p.x = w+50;
+        if(p.x > w+50) p.x = -50;
+        if(p.y < -50) p.y = h+50;
+        if(p.y > h+50) p.y = -50;
+
+        // draw point
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${p.a})`;
+        ctx.fill();
+
+        // connect nearby
+        for(let j=i+1;j<i+14 && j<pts.length;j++){
+          const q = pts[j];
+          const ddx = p.x - q.x;
+          const ddy = p.y - q.y;
+          const dist = Math.hypot(ddx, ddy);
+          if(dist < 120*dpr){
+            const alpha = (1 - dist/(120*dpr)) * 0.18;
+            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+            ctx.lineWidth = 1*dpr;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+    step();
+  </script>
+</body>
 </html>
