@@ -4,38 +4,47 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Model Me</title>
-  <meta name="description" content="Model Me — software used to model how clothes fit on an individual using advanced dynamic clothing mechanics." />
+  <meta name="description" content="A software used to model how clothes fit on an individual using advanced dynamic clothing mechanics." />
 
   <style>
     :root{
-      /* Apple-ish neutrals */
       --bg: #f5f5f7;
-      --bg2:#ffffff;
       --text:#0b0b0f;
       --muted:#5b5b66;
       --line: rgba(0,0,0,.10);
       --shadow: rgba(0,0,0,.10);
 
-      /* Theme: blue + orange */
+      /* keep a subtle brand tint without showing any UI buttons */
       --blue: #0A66FF;
       --orange:#FF7A18;
 
-      --radius: 22px;
+      --radius: 26px;
     }
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
     body{
       margin:0;
-      background: radial-gradient(900px 600px at 20% 10%, rgba(10,102,255,.10), transparent 55%),
-                  radial-gradient(900px 600px at 80% 20%, rgba(255,122,24,.10), transparent 55%),
-                  linear-gradient(180deg, var(--bg), var(--bg));
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(10,102,255,.08), transparent 55%),
+        radial-gradient(900px 600px at 80% 20%, rgba(255,122,24,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg));
       color: var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
                    Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       overflow-x:hidden;
+    }
+
+    /* subtle noise */
+    .noise{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+      opacity: .08;
+      mix-blend-mode: overlay;
     }
 
     /* Top nav (Apple vibe) */
@@ -71,67 +80,43 @@
       background: linear-gradient(135deg, rgba(10,102,255,.95), rgba(255,122,24,.90));
       box-shadow: 0 10px 24px rgba(0,0,0,.12);
     }
-    .nav-right{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      padding: 8px 10px;
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: 999px;
-      background: rgba(255,255,255,.65);
-    }
-    .dot{
-      width:8px; height:8px;
-      border-radius:999px;
-      background: var(--blue);
-      box-shadow: 0 0 0 6px rgba(10,102,255,.12);
-    }
 
-    /* Layout */
+    /* Centered hero */
     .wrap{
-      max-width: 1100px;
-      margin: 0 auto;
+      min-height: calc(100% - 54px);
+      display:grid;
+      place-items: center;
       padding: 28px 18px 56px;
     }
-    .grid{
-      display:grid;
-      grid-template-columns: 1.25fr .75fr;
-      gap: 18px;
-      align-items: start;
-    }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: 1fr; }
+
+    .scene{
+      width: min(980px, 96vw);
+      perspective: 1000px;
     }
 
-    /* Hero card */
     .hero{
-      background: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.82);
       border: 1px solid rgba(0,0,0,.08);
       border-radius: var(--radius);
       box-shadow: 0 24px 80px var(--shadow);
-      padding: clamp(22px, 4vw, 44px);
+      padding: clamp(28px, 5vw, 54px);
       position: relative;
       overflow:hidden;
       transform-style: preserve-3d;
       transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
       transition: transform 160ms ease;
+      text-align: center;
     }
+
     .hero::before{
       content:"";
       position:absolute;
       inset:-2px;
       background:
-        radial-gradient(800px 320px at var(--mx,50%) var(--my,40%),
-          rgba(10,102,255,.18), transparent 60%),
-        radial-gradient(700px 320px at calc(var(--mx,50%) + 18%) calc(var(--my,40%) + 10%),
-          rgba(255,122,24,.16), transparent 62%);
+        radial-gradient(800px 320px at var(--mx,50%) var(--my,45%),
+          rgba(10,102,255,.16), transparent 60%),
+        radial-gradient(700px 320px at calc(var(--mx,50%) + 18%) calc(var(--my,45%) + 10%),
+          rgba(255,122,24,.12), transparent 62%);
       opacity: .9;
       pointer-events:none;
       filter: blur(10px);
@@ -139,29 +124,29 @@
     }
 
     .kicker{
-      font-size: 13px;
-      color: rgba(11,11,15,.68);
-      letter-spacing: .08em;
-      text-transform: uppercase;
       margin: 0 0 14px;
+      font-size: 13px;
+      color: rgba(11,11,15,.62);
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      transform: translateZ(12px);
     }
 
+    /* Additional larger title (above the description) */
     h1{
       margin: 0;
-      font-size: clamp(44px, 7vw, 84px);
-      letter-spacing: -0.055em;
+      font-size: clamp(54px, 8vw, 92px);
+      letter-spacing: -0.06em;
       line-height: 1.0;
-      font-weight: 750;
+      font-weight: 780;
       transform: translateZ(24px);
     }
-
-    /* Interactive gradient title */
     .title{
       display:inline-block;
       background: linear-gradient(var(--ga, 95deg),
-        rgba(11,11,15,.92) 0%,
-        rgba(10,102,255,.90) 35%,
-        rgba(11,11,15,.92) 60%,
+        rgba(11,11,15,.95) 0%,
+        rgba(10,102,255,.92) 35%,
+        rgba(11,11,15,.95) 60%,
         rgba(255,122,24,.92) 100%);
       -webkit-background-clip: text;
       background-clip: text;
@@ -169,117 +154,102 @@
       filter: drop-shadow(0 14px 30px rgba(0,0,0,.10));
     }
 
+    /* Description centered in the middle */
     .desc{
-      margin: 18px 0 0;
-      max-width: 62ch;
+      margin: 18px auto 0;
+      max-width: 66ch;
       color: rgba(11,11,15,.68);
-      font-size: 17px;
-      line-height: 1.6;
+      font-size: clamp(16px, 2.2vw, 18px);
+      line-height: 1.7;
       transform: translateZ(18px);
     }
-
-    /* Founders card (inspired by list screenshot) */
-    .side{
-      background: rgba(255,255,255,.78);
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: var(--radius);
-      box-shadow: 0 24px 80px rgba(0,0,0,.08);
-      overflow:hidden;
-    }
-    .side-head{
-      padding: 16px 18px;
-      border-bottom: 1px solid rgba(0,0,0,.06);
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .side-title{
-      margin:0;
-      font-size: 13px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: rgba(11,11,15,.62);
-    }
-    .badge{
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,.08);
-      background: rgba(10,102,255,.08);
-      color: rgba(10,102,255,.95);
-      font-weight: 650;
-    }
-
-    .list{
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-    .item{
-      display:flex;
-      align-items:center;
-      gap: 12px;
-      padding: 14px 18px;
-      border-bottom: 1px solid rgba(0,0,0,.06);
-      cursor: default;
-      user-select:none;
-      background: rgba(255,255,255,.25);
-      transition: background 180ms ease, transform 140ms ease;
-    }
-    .item:last-child{ border-bottom: none; }
-    .item:hover{
-      background: rgba(10,102,255,.05);
-      transform: translateY(-1px);
-    }
-
-    .avatar{
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      display:grid;
-      place-items:center;
-      font-size: 13px;
-      font-weight: 750;
-      color: rgba(11,11,15,.82);
-      border: 1px solid rgba(0,0,0,.08);
-      background: radial-gradient(120% 120% at 30% 20%,
-        rgba(10,102,255,.22), rgba(255,122,24,.14), rgba(255,255,255,.70));
-    }
-    .name{
-      font-size: 16px;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-      color: rgba(11,11,15,.90);
-    }
-
-    /* Small footer spacing */
-    .spacer{ height: 22px; }
 
     /* Reduce motion */
     @media (prefers-reduced-motion: reduce){
       .hero{ transition:none; }
-      .item{ transition:none; }
     }
   </style>
 </head>
 
 <body>
+  <div class="noise" aria-hidden="true"></div>
+
   <header class="nav">
     <div class="nav-inner">
       <a class="brand" href="#" aria-label="Model Me">
         <span class="logo" aria-hidden="true"></span>
         <span>Model Me</span>
       </a>
-      <div class="nav-right">
-       
-      </div>
+      <!-- top-right removed on purpose -->
+      <span aria-hidden="true"></span>
     </div>
   </header>
 
   <main class="wrap">
-    <div class="grid">
+    <div class="scene">
       <section class="hero" id="hero" aria-label="Model Me hero">
-        <p class="kicker"> a software used to model how clothes fit on an individual using advanced dynamic clothing mechanics </p>
-        <h1><span
+        <p class="kicker">Model Me</p>
+
+        <!-- Larger title above description -->
+        <h1><span class="title" id="title">Model Me</span></h1>
+
+        <!-- Description centered in the middle -->
+        <p class="desc">
+          a software used to model how clothes fit on an individual using advanced dynamic clothing mechanics
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // Subtle Apple-y interaction: tilt + animate title gradient angle
+    const hero = document.getElementById('hero');
+    const title = document.getElementById('title');
+
+    function setVars(clientX, clientY){
+      const r = hero.getBoundingClientRect();
+      const x = clientX - r.left;
+      const y = clientY - r.top;
+
+      const px = Math.max(0, Math.min(1, x / r.width));
+      const py = Math.max(0, Math.min(1, y / r.height));
+
+      const max = 6; // degrees
+      const ry = (px - 0.5) * max * 2;
+      const rx = -(py - 0.5) * max * 2;
+
+      hero.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+      hero.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+      hero.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+      hero.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+
+      const angle = 60 + (px * 80); // 60deg -> 140deg
+      title.style.setProperty('--ga', angle.toFixed(1) + 'deg');
+    }
+
+    let raf = null;
+    function onMove(e){
+      const p = e.touches ? e.touches[0] : e;
+      if(!p) return;
+      if(raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setVars(p.clientX, p.clientY));
+    }
+
+    function reset(){
+      hero.style.setProperty('--rx', '0deg');
+      hero.style.setProperty('--ry', '0deg');
+      hero.style.setProperty('--mx', '50%');
+      hero.style.setProperty('--my', '45%');
+      title.style.setProperty('--ga', '95deg');
+    }
+
+    hero.addEventListener('mousemove', onMove);
+    hero.addEventListener('mouseleave', reset);
+    hero.addEventListener('touchmove', onMove, { passive: true });
+    hero.addEventListener('touchend', reset);
+
+    reset();
+  </script>
+</body>
+</html>
 
