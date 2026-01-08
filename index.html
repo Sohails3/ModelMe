@@ -3,50 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Model Me</title>
-  <meta name="description" content="A software used to model how clothes fit on an individual using advanced dynamic clothing mechanics." />
-
+  <title>Model Me | Interactive Fabric</title>
   <style>
     :root{
       --bg: #f5f5f7;
       --text:#0b0b0f;
-      --muted:#5b5b66;
-      --line: rgba(0,0,0,.10);
-      --shadow: rgba(0,0,0,.10);
-
-      /* brand tints */
       --blue: #0A66FF;
       --orange:#FF7A18;
-
       --radius: 26px;
     }
 
     *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+    html,body{ height:100%; margin:0; }
     body{
-      margin:0;
-      background:
+      background: 
         radial-gradient(900px 600px at 20% 10%, rgba(10,102,255,.08), transparent 55%),
         radial-gradient(900px 600px at 80% 20%, rgba(255,122,24,.06), transparent 55%),
-        linear-gradient(180deg, var(--bg), var(--bg));
+        var(--bg);
       color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       overflow-x:hidden;
     }
 
-    /* subtle noise */
     .noise{
       position: fixed;
       inset: 0;
       pointer-events:none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
-      opacity: .08;
+      opacity: .05;
       mix-blend-mode: overlay;
     }
 
+    /* Nav */
     .nav{
       position: sticky;
       top: 0;
@@ -59,322 +48,193 @@
       max-width: 1100px;
       margin: 0 auto;
       padding: 12px 18px;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 12px;
     }
     .brand{
       display:flex;
       align-items:center;
       gap: 10px;
       font-weight: 650;
-      letter-spacing: -0.02em;
-      color: var(--text);
       text-decoration:none;
+      color: var(--text);
     }
-    .logo{
-      width: 28px; height: 28px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, rgba(10,102,255,.95), rgba(255,122,24,.90));
-      box-shadow: 0 10px 24px rgba(0,0,0,.12);
+    .logo-sq{
+      width: 24px; height: 24px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--orange));
     }
 
+    /* Hero */
     .wrap{
-      min-height: calc(100% - 54px);
       display:grid;
       place-items: center;
-      padding: 28px 18px 56px;
-    }
-
-    .scene{
-      width: min(980px, 96vw);
-      perspective: 1000px;
+      padding: 40px 20px;
     }
 
     .hero{
-      background: rgba(255,255,255,.82);
+      background: rgba(255,255,255,.8);
       border: 1px solid rgba(0,0,0,.08);
       border-radius: var(--radius);
-      box-shadow: 0 24px 80px var(--shadow);
-      padding: clamp(28px, 5vw, 54px);
+      box-shadow: 0 30px 90px rgba(0,0,0,.08);
+      padding: 60px 40px;
+      max-width: 900px;
+      width: 100%;
       position: relative;
-      overflow:hidden;
       transform-style: preserve-3d;
       transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
-      transition: transform 160ms ease;
+      transition: transform 0.2s ease-out;
       text-align: center;
     }
 
-    .hero::before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      background:
-        radial-gradient(800px 320px at var(--mx,50%) var(--my,45%),
-          rgba(10,102,255,.16), transparent 60%),
-        radial-gradient(700px 320px at calc(var(--mx,50%) + 18%) calc(var(--my,45%) + 10%),
-          rgba(255,122,24,.12), transparent 62%);
-      opacity: .9;
-      pointer-events:none;
-      filter: blur(10px);
-      transform: translateZ(-1px);
-    }
-
-    .kicker{
-      margin: 0 0 14px;
-      font-size: 13px;
-      color: rgba(11,11,15,.62);
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      transform: translateZ(12px);
-    }
-
     h1{
+      font-size: clamp(40px, 8vw, 80px);
+      letter-spacing: -0.05em;
       margin: 0;
-      font-size: clamp(54px, 8vw, 92px);
-      letter-spacing: -0.06em;
-      line-height: 1.0;
-      font-weight: 780;
-      transform: translateZ(24px);
+      font-weight: 800;
     }
-    .title{
-      display:inline-block;
-      background: linear-gradient(var(--ga, 95deg),
-        rgba(11,11,15,.95) 0%,
-        rgba(10,102,255,.92) 35%,
-        rgba(11,11,15,.95) 60%,
-        rgba(255,122,24,.92) 100%);
+    .title-grad{
+      background: linear-gradient(var(--ga, 95deg), #111, var(--blue), #111, var(--orange));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      filter: drop-shadow(0 14px 30px rgba(0,0,0,.10));
     }
 
-    .desc{
-      margin: 18px auto 0;
-      max-width: 66ch;
-      color: rgba(11,11,15,.68);
-      font-size: clamp(16px, 2.2vw, 18px);
-      line-height: 1.7;
-      transform: translateZ(18px);
-    }
-
-    /* REFINED MANNEQUIN CSS */
-    .mannequin-wrap{
-      margin: 40px auto 20px;
-      display: flex;
-      justify-content: center;
-      transform: translateZ(40px); /* Lifted higher for parallax */
-      filter: drop-shadow(0 30px 50px rgba(0,0,0,0.15));
-    }
-    
-    .mannequin-svg {
+    /* Interactive Shirt */
+    .shirt-container{
+      margin: 50px auto;
       width: 100%;
-      max-width: 320px;
-      height: auto;
-      overflow: visible;
+      max-width: 400px;
+      filter: drop-shadow(0 40px 60px rgba(0,0,0,0.1));
+      transform: translateZ(50px); /* Parallax pop */
     }
 
-    /* ANIMATION FOR FLOATING */
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+    .shirt-svg{
+      width: 100%;
+      height: auto;
+      animation: float 5s ease-in-out infinite;
     }
-    .mannequin-svg {
-      animation: float 6s ease-in-out infinite;
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(1deg); }
     }
 
     .founders{
-      margin: 42px auto 0;
-      width: min(680px, 96%);
-      transform: translateZ(14px);
-    }
-    .founders-title{
-      margin: 0 0 10px;
-      font-size: 12px;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      color: rgba(11,11,15,.55);
-    }
-    .list{
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 60px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 10px;
+      transform: translateZ(20px);
     }
-    @media (max-width: 560px){
-      .list{ grid-template-columns: 1fr; }
-    }
-    .item{
-      display:flex;
-      align-items:center;
-      gap: 12px;
-      padding: 12px 14px;
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: 18px;
-      background: rgba(255,255,255,.55);
-      box-shadow: 0 14px 30px rgba(0,0,0,.06);
-      user-select:none;
-      transition: transform 140ms ease, background 180ms ease;
-    }
-    .item:hover{
-      transform: translateY(-1px);
-      background: rgba(10,102,255,.04);
-    }
-    .avatar{
-      width: 34px;
-      height: 34px;
-      border-radius: 999px;
-      display:grid;
-      place-items:center;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: rgba(11,11,15,.82);
-      border: 1px solid rgba(0,0,0,.08);
-      background: radial-gradient(120% 120% at 30% 20%,
-        rgba(10,102,255,.18), rgba(255,122,24,.12), rgba(255,255,255,.70));
-    }
-    .name{
-      font-size: 15px;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-      color: rgba(11,11,15,.88);
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      .hero, .item, .mannequin-svg{ animation: none; transition:none; }
+    .founder-pill{
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
   </style>
 </head>
 
 <body>
-  <div class="noise" aria-hidden="true"></div>
-
+  <div class="noise"></div>
   <header class="nav">
     <div class="nav-inner">
-      <a class="brand" href="#" aria-label="Model Me">
-        <span class="logo" aria-hidden="true"></span>
+      <a class="brand" href="#">
+        <div class="logo-sq"></div>
         <span>Model Me</span>
       </a>
     </div>
   </header>
 
   <main class="wrap">
-    <div class="scene">
-      <section class="hero" id="hero" aria-label="Model Me hero">
-        <p class="kicker">Model Me</p>
-        <h1><span class="title" id="title">Model Me</span></h1>
-        <p class="desc">
-          a software used to model how clothes fit on an individual using advanced dynamic clothing mechanics
-        </p>
+    <section class="hero" id="card">
+      <h1><span class="title-grad" id="title">Model Me</span></h1>
+      <p style="color: #666; max-width: 500px; margin: 15px auto;">Dynamic clothing mechanics rendered in real-time.</p>
 
-        <div class="mannequin-wrap">
-          <svg class="mannequin-svg" viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#e0e0e5;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#c8c8d0;stop-opacity:1" />
-              </linearGradient>
-              <linearGradient id="teeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#f0f2f5;stop-opacity:1" />
-              </linearGradient>
-              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#0A66FF;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#FF7A18;stop-opacity:1" />
-              </linearGradient>
-            </defs>
-            
-            <ellipse cx="120" cy="305" rx="70" ry="10" fill="rgba(0,0,0,0.05)" />
-            
-            <rect x="114" y="65" width="12" height="20" rx="6" fill="url(#skinGrad)" />
-            <circle cx="120" cy="45" r="22" fill="url(#skinGrad)" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-            
-            <path d="M55,100 Q40,105 42,145 L75,150 L80,100 Z" fill="white" stroke="rgba(0,0,0,0.08)" />
-            <path d="M185,100 Q200,105 198,145 L165,150 L160,100 Z" fill="white" stroke="rgba(0,0,0,0.08)" />
-            
-            <path d="M75,85 
-                     Q120,75 165,85 
-                     L175,210 
-                     Q120,225 65,210 
-                     Z" fill="url(#teeGrad)" stroke="rgba(0,0,0,0.08)" stroke-width="1" />
-            
-            <path d="M95,85 Q120,105 145,85" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2" />
-            
-            <rect x="108" y="130" width="24" height="24" rx="8" fill="url(#logoGrad)" />
-            
-            <rect x="115" y="225" width="10" height="70" rx="5" fill="url(#skinGrad)" />
-            <rect x="85" y="295" width="70" height="8" rx="4" fill="url(#skinGrad)" />
-          </svg>
-        </div>
+      <div class="shirt-container">
+        <svg class="shirt-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="softShadow" x="-20%" y="-20%" width="150%" height="150%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="5" />
+              <feOffset dx="0" dy="10" result="offsetblur" />
+              <feComponentTransfer>
+                <feFuncA type="linear" slope="0.1"/>
+              </feComponentTransfer>
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <linearGradient id="shirtShine" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ffffff" />
+              <stop offset="50%" style="stop-color:#f9f9fb" />
+              <stop offset="100%" style="stop-color:#ececf0" />
+            </linearGradient>
+          </defs>
 
-        <div class="founders" aria-label="Founders">
-          <p class="founders-title">Founders</p>
-          <ul class="list">
-            <li class="item"><div class="avatar">A</div><div class="name">Aaren</div></li>
-            <li class="item"><div class="avatar">M</div><div class="name">Mitri</div></li>
-            <li class="item"><div class="avatar">A</div><div class="name">~ Alphonsus</div></li>
-            <li class="item"><div class="avatar">H</div><div class="name">~ Haris Malik</div></li>
-            <li class="item"><div class="avatar">H</div><div class="name">~ Hazeem</div></li>
-            <li class="item"><div class="avatar">L</div><div class="name">~ Louis</div></li>
-            <li class="item"><div class="avatar">L</div><div class="name">~ Luis Soares</div></li>
-          </ul>
-        </div>
-      </section>
-    </div>
+          <path d="M90,40 
+                   Q110,30 150,35 
+                   Q190,30 210,40 
+                   L250,60 Q265,70 255,100 L230,115 L225,95
+                   L230,240 Q150,260 70,240 
+                   L75,95 L70,115 L45,100 Q35,70 50,60 Z" 
+                fill="url(#shirtShine)" 
+                stroke="rgba(0,0,0,0.05)" 
+                stroke-width="1"
+                filter="url(#softShadow)" />
+
+          <path d="M110,45 Q150,65 190,45" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2" />
+          
+          <rect x="135" y="110" width="30" height="30" rx="10" 
+                fill="linear-gradient(135deg, #0A66FF, #FF7A18)"
+                style="fill: url(#logoGradAlternative);"/>
+          <defs>
+             <linearGradient id="logoGradAlternative" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#0A66FF" />
+                <stop offset="100%" style="stop-color:#FF7A18" />
+              </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="founders">
+        <span class="founder-pill">Aaren</span>
+        <span class="founder-pill">Mitri</span>
+        <span class="founder-pill">Alphonsus</span>
+        <span class="founder-pill">Haris Malik</span>
+        <span class="founder-pill">Hazeem</span>
+        <span class="founder-pill">Louis</span>
+        <span class="founder-pill">Luis Soares</span>
+      </div>
+    </section>
   </main>
 
   <script>
-    const hero = document.getElementById('hero');
+    const card = document.getElementById('card');
     const title = document.getElementById('title');
 
-    function setVars(clientX, clientY){
-      const r = hero.getBoundingClientRect();
-      const x = clientX - r.left;
-      const y = clientY - r.top;
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      
+      const rx = (0.5 - y) * 10;
+      const ry = (x - 0.5) * 10;
+      
+      card.style.setProperty('--rx', `${rx}deg`);
+      card.style.setProperty('--ry', `${ry}deg`);
+      
+      const angle = 60 + (x * 80);
+      title.style.setProperty('--ga', `${angle}deg`);
+    });
 
-      const px = Math.max(0, Math.min(1, x / r.width));
-      const py = Math.max(0, Math.min(1, y / r.height));
-
-      const max = 6;
-      const ry = (px - 0.5) * max * 2;
-      const rx = -(py - 0.5) * max * 2;
-
-      hero.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-      hero.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-      hero.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
-      hero.style.setProperty('--my', (py * 100).toFixed(1) + '%');
-
-      const angle = 60 + (px * 80);
-      title.style.setProperty('--ga', angle.toFixed(1) + 'deg');
-    }
-
-    let raf = null;
-    function onMove(e){
-      const p = e.touches ? e.touches[0] : e;
-      if(!p) return;
-      if(raf) cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setVars(p.clientX, p.clientY));
-    }
-
-    function reset(){
-      hero.style.setProperty('--rx', '0deg');
-      hero.style.setProperty('--ry', '0deg');
-      hero.style.setProperty('--mx', '50%');
-      hero.style.setProperty('--my', '45%');
-      title.style.setProperty('--ga', '95deg');
-    }
-
-    hero.addEventListener('mousemove', onMove);
-    hero.addEventListener('mouseleave', reset);
-    hero.addEventListener('touchmove', onMove, { passive: true });
-    hero.addEventListener('touchend', reset);
-
-    reset();
+    card.addEventListener('mouseleave', () => {
+      card.style.setProperty('--rx', '0deg');
+      card.style.setProperty('--ry', '0deg');
+    });
   </script>
 </body>
 </html>
