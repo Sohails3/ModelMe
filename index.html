@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Model Me | Interactive Fabric</title>
+  <title>Model Me</title>
   <style>
     :root{
       --bg: #f5f5f7;
       --text:#0b0b0f;
       --blue: #0A66FF;
       --orange:#FF7A18;
-      --radius: 26px;
     }
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; margin:0; }
+    
     body{
       background: 
         radial-gradient(900px 600px at 20% 10%, rgba(10,102,255,.08), transparent 55%),
@@ -23,7 +23,7 @@
       color: var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
-      overflow-x:hidden;
+      overflow: hidden;
     }
 
     .noise{
@@ -35,62 +35,38 @@
       mix-blend-mode: overlay;
     }
 
-    /* Nav */
-    .nav{
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(245,245,247,.75);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(0,0,0,.06);
-    }
-    .nav-inner{
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 12px 18px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      font-weight: 650;
-      text-decoration:none;
-      color: var(--text);
-    }
-    .logo-sq{
-      width: 24px; height: 24px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--blue), var(--orange));
+    /* Layout Wrapper */
+    .viewport{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      perspective: 1200px;
     }
 
-    /* Hero Card */
-    .wrap{
-      display:grid;
-      place-items: center;
-      padding: 40px 20px;
-    }
-
-    .hero{
-      background: rgba(255,255,255,.8);
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: var(--radius);
-      box-shadow: 0 30px 90px rgba(0,0,0,.08);
-      padding: 60px 40px;
-      max-width: 900px;
+    /* The Interactive Content Group */
+    .interactive-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
       width: 100%;
-      position: relative;
+      max-width: 800px;
       transform-style: preserve-3d;
       transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
       transition: transform 0.2s ease-out;
-      text-align: center;
     }
 
     h1{
-      font-size: clamp(40px, 8vw, 80px);
+      font-size: clamp(50px, 10vw, 90px);
       letter-spacing: -0.05em;
       margin: 0;
       font-weight: 800;
+      transform: translateZ(30px);
     }
+    
     .title-grad{
       background: linear-gradient(var(--ga, 95deg), #111, var(--blue), #111, var(--orange));
       -webkit-background-clip: text;
@@ -98,13 +74,21 @@
       color: transparent;
     }
 
-    /* Interactive Shirt */
-    .shirt-container{
+    .desc {
+      color: #666;
+      max-width: 500px;
+      margin: 10px auto 0;
+      font-size: 18px;
+      transform: translateZ(20px);
+    }
+
+    /* Shirt */
+    .shirt-wrap{
       margin: 40px auto;
       width: 100%;
-      max-width: 380px;
-      filter: drop-shadow(0 40px 60px rgba(0,0,0,0.12));
-      transform: translateZ(60px); /* Significant parallax pop */
+      max-width: 360px;
+      filter: drop-shadow(0 30px 50px rgba(0,0,0,0.08));
+      transform: translateZ(80px); /* Makes the shirt pop forward most */
     }
 
     .shirt-svg{
@@ -114,78 +98,59 @@
     }
 
     @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-15px) rotate(1.5deg); }
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
     }
 
-    /* Founders Section */
+    /* Founders */
     .founders-section {
-      margin-top: 50px;
-      transform: translateZ(30px);
+      margin-top: 20px;
+      transform: translateZ(40px);
     }
 
     .founders-header {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: #8e8e93;
-      margin-bottom: 20px;
-      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: #999;
+      margin-bottom: 15px;
+      font-weight: 700;
     }
 
     .founders-list{
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .founder-pill{
-      padding: 8px 18px;
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 99px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-      transition: all 0.2s ease;
-      cursor: default;
-    }
-
-    .founder-pill:hover {
+    .pill{
+      padding: 6px 16px;
       background: white;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-      border-color: var(--blue);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
     }
   </style>
 </head>
 
 <body>
   <div class="noise"></div>
-  <header class="nav">
-    <div class="nav-inner">
-      <a class="brand" href="#">
-        <div class="logo-sq"></div>
-        <span>Model Me</span>
-      </a>
-    </div>
-  </header>
 
-  <main class="wrap">
-    <section class="hero" id="card">
+  <main class="viewport" id="scene">
+    <div class="interactive-content" id="card">
+      
       <h1><span class="title-grad" id="title">Model Me</span></h1>
-      <p style="color: #666; max-width: 500px; margin: 15px auto; font-size: 18px;">
-        Advanced dynamic clothing mechanics for the digital age.
-      </p>
+      <p class="desc">Dynamic clothing mechanics rendered in real-time.</p>
 
-      <div class="shirt-container">
+      <div class="shirt-wrap">
         <svg class="shirt-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="shirtShine" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" style="stop-color:#ffffff" />
-              <stop offset="50%" style="stop-color:#fbfbfd" />
               <stop offset="100%" style="stop-color:#f2f2f7" />
             </linearGradient>
             <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -193,19 +158,9 @@
                 <stop offset="100%" style="stop-color:#FF7A18" />
             </linearGradient>
           </defs>
-
-          <path d="M85,45 
-                   Q110,35 150,40 
-                   Q190,35 215,45 
-                   L260,70 Q275,80 265,110 L240,125 L235,105
-                   L240,250 Q150,270 60,250 
-                   L65,105 L60,125 L35,110 Q25,80 40,70 Z" 
-                fill="url(#shirtShine)" 
-                stroke="rgba(0,0,0,0.06)" 
-                stroke-width="1.5" />
-
+          <path d="M85,45 Q110,35 150,40 Q190,35 215,45 L260,70 Q275,80 265,110 L240,125 L235,105 L240,250 Q150,270 60,250 L65,105 L60,125 L35,110 Q25,80 40,70 Z" 
+                fill="url(#shirtShine)" stroke="rgba(0,0,0,0.05)" stroke-width="1.5" />
           <path d="M105,50 Q150,70 195,50" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.5" />
-          
           <rect x="135" y="125" width="30" height="30" rx="9" fill="url(#logoGrad)"/>
         </svg>
       </div>
@@ -213,40 +168,37 @@
       <div class="founders-section">
         <p class="founders-header">Founders</p>
         <div class="founders-list">
-          <span class="founder-pill">Aaren</span>
-          <span class="founder-pill">Mitri</span>
-          <span class="founder-pill">Alphonsus</span>
-          <span class="founder-pill">Haris Malik</span>
-          <span class="founder-pill">Hazeem</span>
-          <span class="founder-pill">Louis</span>
-          <span class="founder-pill">Luis Soares</span>
+          <span class="pill">Aaren</span>
+          <span class="pill">Mitri</span>
+          <span class="pill">Alphonsus</span>
+          <span class="pill">Haris Malik</span>
+          <span class="pill">Hazeem</span>
+          <span class="pill">Louis</span>
+          <span class="pill">Luis Soares</span>
         </div>
       </div>
-    </section>
+
+    </div>
   </main>
 
   <script>
+    const scene = document.getElementById('scene');
     const card = document.getElementById('card');
     const title = document.getElementById('title');
 
-    card.addEventListener('mousemove', e => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
+    // Track movement on the whole background
+    window.addEventListener('mousemove', e => {
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
       
-      const rx = (0.5 - y) * 8;
-      const ry = (x - 0.5) * 8;
+      const rx = (0.5 - y) * 10;
+      const ry = (x - 0.5) * 10;
       
       card.style.setProperty('--rx', `${rx}deg`);
       card.style.setProperty('--ry', `${ry}deg`);
       
       const angle = 60 + (x * 80);
       title.style.setProperty('--ga', `${angle}deg`);
-    });
-
-    card.addEventListener('mouseleave', () => {
-      card.style.setProperty('--rx', '0deg');
-      card.style.setProperty('--ry', '0deg');
     });
   </script>
 </body>
