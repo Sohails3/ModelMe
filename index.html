@@ -4,289 +4,282 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Model Me</title>
+  <meta name="description" content="Model Me — software used to model how clothes fit on an individual using advanced dynamic clothing mechanics." />
+
   <style>
     :root{
-      --bg: #070A12;
-      --blue: #2E7BFF;
-      --orange: #FF7A18;
-      --glass: rgba(255,255,255,.08);
-      --line: rgba(255,255,255,.14);
-      --shadow: rgba(0,0,0,.55);
-      --text: rgba(255,255,255,.92);
+      /* Apple-ish neutrals */
+      --bg: #f5f5f7;
+      --bg2:#ffffff;
+      --text:#0b0b0f;
+      --muted:#5b5b66;
+      --line: rgba(0,0,0,.10);
+      --shadow: rgba(0,0,0,.10);
+
+      /* Theme: blue + orange */
+      --blue: #0A66FF;
+      --orange:#FF7A18;
+
+      --radius: 22px;
     }
 
-    *{ box-sizing: border-box; }
-    html, body{ height:100%; }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
     body{
       margin:0;
-      overflow:hidden;
-      background: var(--bg);
+      background: radial-gradient(900px 600px at 20% 10%, rgba(10,102,255,.10), transparent 55%),
+                  radial-gradient(900px 600px at 80% 20%, rgba(255,122,24,.10), transparent 55%),
+                  linear-gradient(180deg, var(--bg), var(--bg));
       color: var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
                    Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      overflow-x:hidden;
     }
 
-    /* Apple-ish ambient background */
-    .bg{
-      position: fixed;
-      inset: -20vmax;
-      pointer-events:none;
-      background:
-        radial-gradient(900px 700px at 18% 20%, rgba(46,123,255,.30), transparent 55%),
-        radial-gradient(900px 700px at 80% 30%, rgba(255,122,24,.22), transparent 55%),
-        radial-gradient(1100px 900px at 55% 75%, rgba(46,123,255,.16), transparent 60%),
-        linear-gradient(180deg, rgba(255,255,255,.03), transparent 30%),
-        linear-gradient(180deg, #060812, #070A12 55%, #060812);
-      filter: blur(22px);
-      animation: drift 12s ease-in-out infinite alternate;
-      opacity: .95;
+    /* Top nav (Apple vibe) */
+    .nav{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(245,245,247,.75);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,0,0,.06);
     }
-    @keyframes drift{
-      from{ transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
-      to{ transform: translate3d(1.5%, 1%, 0) scale(1.06); }
+    .nav-inner{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 18px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration:none;
+    }
+    .logo{
+      width: 28px; height: 28px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(10,102,255,.95), rgba(255,122,24,.90));
+      box-shadow: 0 10px 24px rgba(0,0,0,.12);
+    }
+    .nav-right{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 999px;
+      background: rgba(255,255,255,.65);
+    }
+    .dot{
+      width:8px; height:8px;
+      border-radius:999px;
+      background: var(--blue);
+      box-shadow: 0 0 0 6px rgba(10,102,255,.12);
     }
 
-    /* subtle noise */
-    .noise{
-      position: fixed;
-      inset: 0;
-      pointer-events:none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
-      opacity: .10;
-      mix-blend-mode: overlay;
-    }
-
+    /* Layout */
     .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    /* Hero card */
+    .hero{
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 80px var(--shadow);
+      padding: clamp(22px, 4vw, 44px);
       position: relative;
-      height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-
-    .scene{
-      width: min(980px, 96vw);
-      height: min(520px, 70vh);
-      display: grid;
-      place-items: center;
-      perspective: 1000px;
-    }
-
-    .glass{
-      width: 100%;
-      height: 100%;
-      border-radius: 34px;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      box-shadow:
-        0 40px 120px var(--shadow),
-        inset 0 1px 0 rgba(255,255,255,.10);
-      backdrop-filter: blur(14px);
+      overflow:hidden;
       transform-style: preserve-3d;
       transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
       transition: transform 160ms ease;
-      position: relative;
-      overflow: hidden;
-      display: grid;
-      place-items: center;
     }
-
-    /* sheen follows cursor */
-    .glass::before{
+    .hero::before{
       content:"";
       position:absolute;
       inset:-2px;
       background:
-        radial-gradient(700px 260px at var(--mx,50%) var(--my,50%),
-          rgba(46,123,255,.30), transparent 60%),
-        radial-gradient(600px 240px at calc(var(--mx,50%) + 18%) calc(var(--my,50%) - 10%),
-          rgba(255,122,24,.26), transparent 62%),
-        linear-gradient(120deg, rgba(255,255,255,.08), transparent 35%);
-      filter: blur(12px);
+        radial-gradient(800px 320px at var(--mx,50%) var(--my,40%),
+          rgba(10,102,255,.18), transparent 60%),
+        radial-gradient(700px 320px at calc(var(--mx,50%) + 18%) calc(var(--my,40%) + 10%),
+          rgba(255,122,24,.16), transparent 62%);
       opacity: .9;
+      pointer-events:none;
+      filter: blur(10px);
       transform: translateZ(-1px);
-      pointer-events:none;
     }
 
-    /* thin highlight edge */
-    .glass::after{
-      content:"";
-      position:absolute;
-      inset: 1px;
-      border-radius: 33px;
-      background: linear-gradient(135deg, rgba(255,255,255,.12), transparent 45%, rgba(255,255,255,.06));
-      mix-blend-mode: overlay;
-      opacity: .65;
-      pointer-events:none;
+    .kicker{
+      font-size: 13px;
+      color: rgba(11,11,15,.68);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin: 0 0 14px;
     }
 
-    /* The only visible text */
     h1{
       margin: 0;
-      font-size: clamp(56px, 8.5vw, 120px);
-      letter-spacing: -0.045em; /* Apple-y tight */
-      font-weight: 720;
+      font-size: clamp(44px, 7vw, 84px);
+      letter-spacing: -0.055em;
       line-height: 1.0;
-      transform: translateZ(64px);
-      position: relative;
-      user-select: none;
-      cursor: default;
+      font-weight: 750;
+      transform: translateZ(24px);
+    }
 
-      /* premium gradient fill */
-      background: linear-gradient(90deg,
-        rgba(255,255,255,.95) 0%,
-        rgba(46,123,255,.95) 35%,
-        rgba(255,255,255,.95) 60%,
-        rgba(255,122,24,.95) 100%);
+    /* Interactive gradient title */
+    .title{
+      display:inline-block;
+      background: linear-gradient(var(--ga, 95deg),
+        rgba(11,11,15,.92) 0%,
+        rgba(10,102,255,.90) 35%,
+        rgba(11,11,15,.92) 60%,
+        rgba(255,122,24,.92) 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-
-      /* depth */
-      filter: drop-shadow(0 18px 34px rgba(0,0,0,.55));
-      text-shadow:
-        0 1px 0 rgba(0,0,0,.25),
-        0 2px 0 rgba(0,0,0,.18),
-        0 10px 40px rgba(0,0,0,.45);
+      filter: drop-shadow(0 14px 30px rgba(0,0,0,.10));
     }
 
-    /* interactive micro “shine” on the text itself */
-    .shine{
-      position:absolute;
-      inset:-40px -80px;
-      background: radial-gradient(260px 140px at var(--tx,50%) var(--ty,50%),
-        rgba(255,255,255,.55), transparent 65%);
-      mix-blend-mode: overlay;
-      opacity: .0;
-      transition: opacity 180ms ease;
-      pointer-events:none;
-      transform: translateZ(66px);
+    .desc{
+      margin: 18px 0 0;
+      max-width: 62ch;
+      color: rgba(11,11,15,.68);
+      font-size: 17px;
+      line-height: 1.6;
+      transform: translateZ(18px);
     }
-    .glass:hover .shine{ opacity: .35; }
 
-    /* click ripple (no text) */
-    .ripple{
-      position:absolute;
-      width: 16px; height:16px;
+    /* Founders card (inspired by list screenshot) */
+    .side{
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 80px rgba(0,0,0,.08);
+      overflow:hidden;
+    }
+    .side-head{
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .side-title{
+      margin:0;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(11,11,15,.62);
+    }
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.22);
-      background: radial-gradient(circle, rgba(46,123,255,.25), rgba(255,122,24,.12), transparent 70%);
-      transform: translate(-50%,-50%) scale(1);
-      opacity: .0;
-      pointer-events:none;
-      filter: blur(.2px);
+      border: 1px solid rgba(0,0,0,.08);
+      background: rgba(10,102,255,.08);
+      color: rgba(10,102,255,.95);
+      font-weight: 650;
     }
 
-    /* reduce motion respect */
+    .list{
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .item{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      cursor: default;
+      user-select:none;
+      background: rgba(255,255,255,.25);
+      transition: background 180ms ease, transform 140ms ease;
+    }
+    .item:last-child{ border-bottom: none; }
+    .item:hover{
+      background: rgba(10,102,255,.05);
+      transform: translateY(-1px);
+    }
+
+    .avatar{
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display:grid;
+      place-items:center;
+      font-size: 13px;
+      font-weight: 750;
+      color: rgba(11,11,15,.82);
+      border: 1px solid rgba(0,0,0,.08);
+      background: radial-gradient(120% 120% at 30% 20%,
+        rgba(10,102,255,.22), rgba(255,122,24,.14), rgba(255,255,255,.70));
+    }
+    .name{
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: rgba(11,11,15,.90);
+    }
+
+    /* Small footer spacing */
+    .spacer{ height: 22px; }
+
+    /* Reduce motion */
     @media (prefers-reduced-motion: reduce){
-      .bg{ animation: none; }
-      .glass{ transition: none; }
+      .hero{ transition:none; }
+      .item{ transition:none; }
     }
   </style>
 </head>
-<body>
-  <div class="bg" aria-hidden="true"></div>
-  <div class="noise" aria-hidden="true"></div>
 
-  <div class="wrap">
-    <div class="scene">
-      <div class="glass" id="glass" aria-label="Model Me interactive title panel">
-        <h1 id="title" aria-label="Model Me">Model Me</h1>
-        <div class="shine" id="shine" aria-hidden="true"></div>
-        <div class="ripple" id="ripple" aria-hidden="true"></div>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#" aria-label="Model Me">
+        <span class="logo" aria-hidden="true"></span>
+        <span>Model Me</span>
+      </a>
+      <div class="nav-right">
+        <span class="pill"><span class="dot" aria-hidden="true"></span> Blue • Orange</span>
       </div>
     </div>
-  </div>
+  </header>
 
-  <script>
-    const glass = document.getElementById("glass");
-    const shine = document.getElementById("shine");
-    const ripple = document.getElementById("ripple");
-
-    let raf = null;
-
-    function setVarsFromPoint(clientX, clientY){
-      const r = glass.getBoundingClientRect();
-      const x = clientX - r.left;
-      const y = clientY - r.top;
-
-      const px = Math.max(0, Math.min(1, x / r.width));
-      const py = Math.max(0, Math.min(1, y / r.height));
-
-      // tilt (Apple-ish subtle)
-      const max = 9;
-      const ry = (px - 0.5) * max * 2;
-      const rx = -(py - 0.5) * max * 2;
-
-      glass.style.setProperty("--rx", rx.toFixed(2) + "deg");
-      glass.style.setProperty("--ry", ry.toFixed(2) + "deg");
-      glass.style.setProperty("--mx", (px * 100).toFixed(1) + "%");
-      glass.style.setProperty("--my", (py * 100).toFixed(1) + "%");
-
-      // text shine position
-      glass.style.setProperty("--tx", (px * 100).toFixed(1) + "%");
-      glass.style.setProperty("--ty", (py * 100).toFixed(1) + "%");
-    }
-
-    function onMove(e){
-      const p = e.touches ? e.touches[0] : e;
-      if (!p) return;
-
-      if (raf) cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setVarsFromPoint(p.clientX, p.clientY));
-    }
-
-    function reset(){
-      glass.style.setProperty("--rx", "0deg");
-      glass.style.setProperty("--ry", "0deg");
-      glass.style.setProperty("--mx", "50%");
-      glass.style.setProperty("--my", "50%");
-      glass.style.setProperty("--tx", "50%");
-      glass.style.setProperty("--ty", "50%");
-    }
-
-    function clickRipple(e){
-      const p = e.touches ? e.touches[0] : e;
-      const r = glass.getBoundingClientRect();
-      const x = p.clientX - r.left;
-      const y = p.clientY - r.top;
-
-      ripple.style.left = x + "px";
-      ripple.style.top = y + "px";
-
-      ripple.animate(
-        [
-          { transform: "translate(-50%,-50%) scale(1)", opacity: 0.0 },
-          { transform: "translate(-50%,-50%) scale(10)", opacity: 0.22 },
-          { transform: "translate(-50%,-50%) scale(16)", opacity: 0.0 }
-        ],
-        { duration: 650, easing: "ease-out" }
-      );
-
-      // tiny “pulse” of the card
-      glass.animate(
-        [
-          { transform: getComputedStyle(glass).transform },
-          { transform: "scale(1.01) " + getComputedStyle(glass).transform },
-          { transform: getComputedStyle(glass).transform }
-        ],
-        { duration: 260, easing: "ease-out" }
-      );
-    }
-
-    glass.addEventListener("mousemove", onMove);
-    glass.addEventListener("mouseleave", reset);
-    glass.addEventListener("touchmove", onMove, { passive: true });
-    glass.addEventListener("touchend", reset);
-
-    glass.addEventListener("click", clickRipple);
-    glass.addEventListener("touchstart", clickRipple, { passive: true });
-
-    // start centered
-    reset();
-  </script>
-</body>
-</html>
+  <main class="wrap">
+    <div class="grid">
+      <section class="hero" id="hero" aria-label="Model Me hero">
+        <p class="kicker">Model Me</p>
+        <h1><span
 
