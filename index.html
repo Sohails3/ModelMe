@@ -7,10 +7,9 @@
 
   <style>
     :root {
-      /* These get overwritten automatically from the video */
+      /* Dark Studio Palette */
       --bg-top: #1a1a1c;
       --bg-bottom: #0d0d0e;
-
       --text: #e1e1e6;
       --blue: #0A66FF;
       --orange: #FF7A18;
@@ -27,7 +26,6 @@
       font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
-      transition: background 400ms ease; /* smooth colour changes */
     }
 
     /* Keep noise behind content */
@@ -123,7 +121,7 @@
       transform: translateZ(30px);
     }
 
-    /* Demo Video */
+    /* Demo Video (replaces T-shirt) */
     .hero-video-wrap{
       width: 100%;
       max-width: 900px;
@@ -141,7 +139,7 @@
       display: block;
     }
 
-    /* Team Lists */
+    /* Team Lists (tight to video) */
     .section-container {
       margin-top: 6px;
       transform: translateZ(50px);
@@ -196,15 +194,9 @@
       <h1><span class="title-grad" id="title">ModelMe</span></h1>
       <p class="desc">Dynamic clothing simulation rendered in real-time to fit your body</p>
 
+      <!-- DEMO VIDEO (auto-plays, muted, loops) -->
       <div class="hero-video-wrap">
-        <video
-          class="demo-video"
-          id="demoVideo"
-          autoplay
-          muted
-          loop
-          playsinline
-          preload="metadata">
+        <video class="demo-video" autoplay muted loop playsinline preload="metadata">
           <source src="Mannequin_T_Shirt_Dressing_Animation.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
@@ -230,7 +222,6 @@
   </main>
 
   <script>
-    // Tilt effect (your existing behaviour)
     const card = document.getElementById('card');
     const title = document.getElementById('title');
 
@@ -247,111 +238,7 @@
       const angle = 45 + (x * 90);
       title.style.setProperty('--ga', `${angle}deg`);
     });
-
-    // --- Match background to the VIDEO (samples corners) ---
-    const video = document.getElementById('demoVideo');
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-    let rafId = null;
-    let lastUpdate = 0;
-
-    function clamp01(v){ return Math.max(0, Math.min(1, v)); }
-
-    function rgbToHex(r,g,b){
-      const toHex = (n) => n.toString(16).padStart(2,'0');
-      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-    }
-
-    function sampleRegionAverage(imgData, x0, y0, w, h, strideW){
-      let r=0,g=0,b=0,c=0;
-      for (let y = y0; y < y0 + h; y++){
-        for (let x = x0; x < x0 + w; x++){
-          const i = (y * strideW + x) * 4;
-          r += imgData[i];
-          g += imgData[i+1];
-          b += imgData[i+2];
-          c++;
-        }
-      }
-      return [r/c, g/c, b/c];
-    }
-
-    function lerp(a,b,t){ return a + (b-a)*t; }
-
-    // Smooth the colour so it doesn't flicker
-    let smooth = { r: 26, g: 26, b: 28 };
-
-    function tick(ts){
-      // throttle ~8 fps (enough, avoids heavy CPU)
-      if (ts - lastUpdate < 120) {
-        rafId = requestAnimationFrame(tick);
-        return;
-      }
-      lastUpdate = ts;
-
-      if (video.readyState >= 2 && video.videoWidth && video.videoHeight){
-        // draw current frame at small size for performance
-        const W = 160;
-        const H = Math.round((video.videoHeight / video.videoWidth) * W);
-        canvas.width = W;
-        canvas.height = H;
-
-        ctx.drawImage(video, 0, 0, W, H);
-
-        // read pixels
-        const frame = ctx.getImageData(0, 0, W, H).data;
-
-        // sample small squares in the 4 corners
-        const s = 18; // sample size
-        const tl = sampleRegionAverage(frame, 0, 0, s, s, W);
-        const tr = sampleRegionAverage(frame, W - s, 0, s, s, W);
-        const bl = sampleRegionAverage(frame, 0, H - s, s, s, W);
-        const br = sampleRegionAverage(frame, W - s, H - s, s, s, W);
-
-        // average corners
-        const r = (tl[0] + tr[0] + bl[0] + br[0]) / 4;
-        const g = (tl[1] + tr[1] + bl[1] + br[1]) / 4;
-        const b = (tl[2] + tr[2] + bl[2] + br[2]) / 4;
-
-        // smooth it
-        const t = 0.18;
-        smooth.r = lerp(smooth.r, r, t);
-        smooth.g = lerp(smooth.g, g, t);
-        smooth.b = lerp(smooth.b, b, t);
-
-        // create two tones (top slightly lighter)
-        const top = {
-          r: Math.round(smooth.r * 1.08),
-          g: Math.round(smooth.g * 1.08),
-          b: Math.round(smooth.b * 1.08),
-        };
-        const bottom = {
-          r: Math.round(smooth.r * 0.85),
-          g: Math.round(smooth.g * 0.85),
-          b: Math.round(smooth.b * 0.85),
-        };
-
-        document.documentElement.style.setProperty('--bg-top', rgbToHex(top.r, top.g, top.b));
-        document.documentElement.style.setProperty('--bg-bottom', rgbToHex(bottom.r, bottom.g, bottom.b));
-      }
-
-      rafId = requestAnimationFrame(tick);
-    }
-
-    function startSampling(){
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(tick);
-    }
-
-    video.addEventListener('play', startSampling);
-    video.addEventListener('loadeddata', () => {
-      // some browsers autoplay only after loadeddata
-      if (!video.paused) startSampling();
-    });
-
-    // if autoplay starts immediately
-    if (!video.paused) startSampling();
   </script>
 </body>
 </html>
+
