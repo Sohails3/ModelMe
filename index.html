@@ -174,6 +174,34 @@
       color: #fff;
       border-color: rgba(255,255,255,0.2);
     }
+
+    /* Video Section */
+    .video-section{
+      width: 100%;
+      max-width: 900px;
+      margin: 40px auto 80px;
+      padding: 0 16px;
+      transform: translateZ(40px);
+    }
+
+    .video-title{
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      color: #555;
+      margin: 0 0 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .demo-video{
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      background: rgba(0,0,0,0.25);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+      display: block;
+    }
   </style>
 </head>
 
@@ -221,11 +249,10 @@
           <path d="M105,50 Q150,70 195,50 Q150,55 105,50" fill="rgba(0,0,0,0.4)" />
           <path d="M105,50 Q150,70 195,50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
 
-          
           <defs>
             <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#0A66FF" />
-                <stop offset="100%" style="stop-color:#FF7A18" />
+              <stop offset="0%" style="stop-color:#0A66FF" />
+              <stop offset="100%" style="stop-color:#FF7A18" />
             </linearGradient>
           </defs>
         </svg>
@@ -244,8 +271,16 @@
         <p class="section-header">HR & Legal</p>
         <div class="pill-grid">
           <span class="pill">Matthew</span>
-
         </div>
+      </div>
+
+      <!-- VIDEO AT THE BOTTOM -->
+      <div class="video-section">
+        <p class="video-title">Demo Video</p>
+        <video class="demo-video" controls muted playsinline preload="metadata">
+          <source src="Mannequin_T_Shirt_Dressing_Animation.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </div>
 
     </div>
@@ -258,14 +293,14 @@
     window.addEventListener('mousemove', e => {
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;
-      
+
       // Subtler movement for a high-end feel
       const rx = (0.5 - y) * 7;
       const ry = (x - 0.5) * 7;
-      
+
       card.style.setProperty('--rx', `${rx}deg`);
       card.style.setProperty('--ry', `${ry}deg`);
-      
+
       // Title highlight follows mouse
       const angle = 45 + (x * 90);
       title.style.setProperty('--ga', `${angle}deg`);
