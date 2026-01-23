@@ -18,7 +18,7 @@
 
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
-    
+
     body {
       background: radial-gradient(circle at 50% 40%, var(--bg-top) 0%, var(--bg-bottom) 100%);
       color: var(--text);
@@ -85,7 +85,7 @@
       align-items: center;
       text-align: center;
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       transform-style: preserve-3d;
       transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
       transition: transform 0.2s ease-out;
@@ -98,7 +98,7 @@
       font-weight: 800;
       transform: translateZ(40px);
     }
-    
+
     .title-grad {
       background: linear-gradient(var(--ga, 95deg), #fff 20%, #888 50%, #fff 80%);
       -webkit-background-clip: text;
@@ -109,36 +109,73 @@
 
     .desc {
       color: #888;
-      max-width: 450px;
+      max-width: 520px;
       margin: 15px auto 0;
       font-size: 17px;
       font-weight: 400;
       transform: translateZ(30px);
     }
 
-    /* Shirt Rendering */
+    /* Mannequin / Shirt Rendering */
     .shirt-wrap {
-      margin: 40px auto;
+      margin: 30px auto 10px;
       width: 100%;
-      max-width: 380px;
-      filter: drop-shadow(0 40px 70px rgba(0,0,0,0.5));
+      max-width: 520px;
+      filter: drop-shadow(0 40px 70px rgba(0,0,0,0.55));
       transform: translateZ(100px);
     }
 
-    .shirt-svg {
+    .mannequin-svg {
       width: 100%;
       height: auto;
-      animation: float 8s ease-in-out infinite;
+      animation: mannequinFloat 7s ease-in-out infinite;
+      transform-origin: 50% 50%;
+      will-change: transform;
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-12px) rotate(1deg); }
+    @keyframes mannequinFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Arms “adjusting” motion */
+    .arm-left {
+      transform-origin: 80px 40px;
+      animation: adjustLeft 2.6s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .arm-right {
+      transform-origin: -80px 40px;
+      animation: adjustRight 2.6s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    @keyframes adjustLeft {
+      0%, 100% { transform: translate(118px,185px) rotate(0deg); }
+      50% { transform: translate(118px,185px) rotate(-10deg) translate(-6px, 6px); }
+    }
+
+    @keyframes adjustRight {
+      0%, 100% { transform: translate(302px,185px) rotate(0deg); }
+      50% { transform: translate(302px,185px) rotate(10deg) translate(6px, 6px); }
+    }
+
+    /* Shirt “pull / settle” */
+    .shirt {
+      transform-origin: 50% 40%;
+      animation: shirtPull 2.6s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    @keyframes shirtPull {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.01, 0.995) translateY(2px); }
     }
 
     /* Team Lists */
     .section-container {
-      margin-top: 30px;
+      margin-top: 18px;
       transform: translateZ(50px);
     }
 
@@ -179,7 +216,7 @@
     .video-section{
       width: 100%;
       max-width: 900px;
-      margin: 40px auto 80px;
+      margin: 42px auto 85px;
       padding: 0 16px;
       transform: translateZ(40px);
     }
@@ -215,46 +252,135 @@
 
   <main class="viewport" id="scene">
     <div class="interactive-content" id="card">
-      
+
       <h1><span class="title-grad" id="title">ModelMe</span></h1>
       <p class="desc">Dynamic clothing simulation rendered in real-time to fit your body</p>
 
+      <!-- Mannequin + Draped T-Shirt (animated arms adjust the fabric) -->
       <div class="shirt-wrap">
-        <svg class="shirt-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <svg class="mannequin-svg" viewBox="0 0 420 520" xmlns="http://www.w3.org/2000/svg" aria-label="Mannequin adjusting a draped T-shirt">
           <defs>
-            <linearGradient id="shirtBody" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:#d1d1d6" />
-              <stop offset="50%" style="stop-color:#a2a2a8" />
-              <stop offset="100%" style="stop-color:#636366" />
-            </linearGradient>
-
-            <radialGradient id="collarShadow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" style="stop-color:#000; stop-opacity:0.4" />
-              <stop offset="100%" style="stop-color:#000; stop-opacity:0" />
+            <!-- subtle scene glow -->
+            <radialGradient id="bgGlow" cx="50%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.08"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
             </radialGradient>
 
-            <filter id="ao" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
-              <feOffset dx="0" dy="2" result="offsetBlur"/>
-              <feComposite in="SourceGraphic" in2="offsetBlur" operator="out" result="shadow"/>
-              <feFlood flood-color="black" flood-opacity="0.3"/>
-              <feComposite in2="shadow" operator="in"/>
-              <feComposite in2="SourceGraphic" operator="over"/>
+            <!-- Mannequin material -->
+            <linearGradient id="mannequinBody" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#2a2a2e"/>
+              <stop offset="45%" stop-color="#1c1c20"/>
+              <stop offset="100%" stop-color="#101013"/>
+            </linearGradient>
+
+            <!-- Shirt fabric -->
+            <linearGradient id="shirtFabric" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#d9d9df"/>
+              <stop offset="45%" stop-color="#b6b6be"/>
+              <stop offset="100%" stop-color="#7c7c84"/>
+            </linearGradient>
+
+            <!-- Wrinkle shading -->
+            <linearGradient id="wrinkle" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#000000" stop-opacity="0.0"/>
+              <stop offset="50%" stop-color="#000000" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.0"/>
+            </linearGradient>
+
+            <!-- Soft AO -->
+            <filter id="softAO" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="5" result="blur"/>
+              <feColorMatrix type="matrix"
+                values="0 0 0 0 0
+                        0 0 0 0 0
+                        0 0 0 0 0
+                        0 0 0 .25 0" />
             </filter>
           </defs>
 
-          <path d="M85,45 Q110,35 150,40 Q190,35 215,45 L260,70 Q275,80 265,110 L240,125 L235,105 L240,250 Q150,270 60,250 L65,105 L60,125 L35,110 Q25,80 40,70 Z" 
-                fill="url(#shirtBody)" filter="url(#ao)" />
-          
-          <path d="M105,50 Q150,70 195,50 Q150,55 105,50" fill="rgba(0,0,0,0.4)" />
-          <path d="M105,50 Q150,70 195,50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+          <ellipse cx="210" cy="205" rx="180" ry="190" fill="url(#bgGlow)"/>
 
-          <defs>
-            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#0A66FF" />
-              <stop offset="100%" style="stop-color:#FF7A18" />
-            </linearGradient>
-          </defs>
+          <!-- MANNEQUIN -->
+          <g class="mannequin">
+            <path d="M196 88 C196 72 224 72 224 88 L224 112 C224 132 196 132 196 112 Z"
+                  fill="url(#mannequinBody)" opacity="0.95"/>
+
+            <path d="M132 135
+                     C140 110 170 102 210 102
+                     C250 102 280 110 288 135
+                     C302 178 300 245 290 320
+                     C280 405 268 450 210 450
+                     C152 450 140 405 130 320
+                     C120 245 118 178 132 135 Z"
+                  fill="url(#mannequinBody)" />
+
+            <path d="M206 450 L214 450 L224 505 L196 505 Z" fill="#0b0b0d" opacity="0.9"/>
+            <ellipse cx="210" cy="510" rx="95" ry="10" fill="#000" opacity="0.35"/>
+          </g>
+
+          <!-- ARMS (ANIMATED) -->
+          <g class="arms">
+            <!-- Left arm -->
+            <g class="arm arm-left">
+              <path d="M118 185
+                       C78 205 58 240 66 277
+                       C72 307 98 327 124 341
+                       C142 351 158 340 154 319
+                       C148 289 134 257 146 231
+                       C158 205 140 179 118 185 Z"
+                    fill="url(#mannequinBody)" opacity="0.95"/>
+              <path d="M128 335
+                       C116 341 112 355 124 363
+                       C136 371 162 363 166 349
+                       C170 335 146 329 128 335 Z"
+                    fill="#151519" opacity="0.95"/>
+            </g>
+
+            <!-- Right arm -->
+            <g class="arm arm-right">
+              <path d="M302 185
+                       C342 205 362 240 354 277
+                       C348 307 322 327 296 341
+                       C278 351 262 340 266 319
+                       C272 289 286 257 274 231
+                       C262 205 280 179 302 185 Z"
+                    fill="url(#mannequinBody)" opacity="0.95"/>
+              <path d="M292 335
+                       C304 341 308 355 296 363
+                       C284 371 258 363 254 349
+                       C250 335 274 329 292 335 Z"
+                    fill="#151519" opacity="0.95"/>
+            </g>
+          </g>
+
+          <!-- DRAPED T-SHIRT (ANIMATED “PULL”) -->
+          <g class="shirt">
+            <path class="shirt-main"
+                  d="M130 170
+                     C145 145 170 132 210 132
+                     C250 132 275 145 290 170
+                     L332 205
+                     C345 216 338 245 320 250
+                     L292 258
+                     C292 322 288 385 282 425
+                     C276 460 250 476 210 476
+                     C170 476 144 460 138 425
+                     C132 385 128 322 128 258
+                     L100 250
+                     C82 245 75 216 88 205 Z"
+                  fill="url(#shirtFabric)" filter="url(#softAO)"/>
+
+            <path d="M175 160
+                     C190 182 230 182 245 160
+                     C230 150 190 150 175 160 Z"
+                  fill="#0d0d0e" opacity="0.55"/>
+
+            <path d="M160 250 C190 275 210 285 260 280" fill="none" stroke="url(#wrinkle)" stroke-width="7" opacity="0.9"/>
+            <path d="M150 310 C190 335 225 340 275 330" fill="none" stroke="url(#wrinkle)" stroke-width="6" opacity="0.75"/>
+            <path d="M165 365 C195 385 230 392 260 388" fill="none" stroke="url(#wrinkle)" stroke-width="6" opacity="0.6"/>
+
+            <path d="M145 420 C170 442 250 442 275 420" fill="none" stroke="#000" stroke-opacity="0.22" stroke-width="10" />
+          </g>
         </svg>
       </div>
 
@@ -268,7 +394,7 @@
           <span class="pill">Hazeem</span>
         </div>
 
-        <p class="section-header">HR & Legal</p>
+        <p class="section-header">HR &amp; Legal</p>
         <div class="pill-grid">
           <span class="pill">Matthew</span>
         </div>
@@ -294,14 +420,12 @@
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;
 
-      // Subtler movement for a high-end feel
       const rx = (0.5 - y) * 7;
       const ry = (x - 0.5) * 7;
 
       card.style.setProperty('--rx', `${rx}deg`);
       card.style.setProperty('--ry', `${ry}deg`);
 
-      // Title highlight follows mouse
       const angle = 45 + (x * 90);
       title.style.setProperty('--ga', `${angle}deg`);
     });
