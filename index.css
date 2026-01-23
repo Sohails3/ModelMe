@@ -1,0 +1,49 @@
+
+.mannequin-wrap{
+  max-width: 520px;
+  margin: 30px auto 10px;
+}
+
+.mannequin-svg{
+  width: 100%;
+  height: auto;
+  animation: mannequinFloat 7s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes mannequinFloat{
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-10px); }
+}
+
+/* Arms “adjusting” motion */
+.arm-left{
+  transform-origin: 80px 40px;
+  animation: adjustLeft 2.6s ease-in-out infinite;
+}
+
+.arm-right{
+  transform-origin: -80px 40px;
+  animation: adjustRight 2.6s ease-in-out infinite;
+}
+
+@keyframes adjustLeft{
+  0%,100%{ transform: translate(118px,185px) rotate(0deg); }
+  50%{ transform: translate(118px,185px) rotate(-10deg) translate(-6px, 6px); }
+}
+
+@keyframes adjustRight{
+  0%,100%{ transform: translate(302px,185px) rotate(0deg); }
+  50%{ transform: translate(302px,185px) rotate(10deg) translate(6px, 6px); }
+}
+
+/* Shirt “pull / settle” to sell the idea of fabric being adjusted */
+.shirt{
+  transform-origin: 50% 40%;
+  animation: shirtPull 2.6s ease-in-out infinite;
+}
+
+@keyframes shirtPull{
+  0%,100%{ transform: scale(1) translateY(0); }
+  50%{ transform: scale(1.01, 0.995) translateY(2px); }
+}
