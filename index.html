@@ -73,7 +73,6 @@
       align-items: center;
       min-height: 100vh;
       padding: 100px 0 80px;
-      perspective: 1200px;
     }
 
     .interactive-content {
@@ -83,9 +82,6 @@
       text-align: center;
       width: 100%;
       max-width: 900px;
-      transform-style: preserve-3d;
-      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-      transition: transform 0.2s ease-out;
     }
 
     h1 {
@@ -93,11 +89,10 @@
       letter-spacing: -0.04em;
       margin: 0;
       font-weight: 800;
-      transform: translateZ(40px);
     }
 
     .title-grad {
-      background: linear-gradient(var(--ga, 95deg), #fff 20%, #888 50%, #fff 80%);
+      background: linear-gradient(95deg, #fff 20%, #888 50%, #fff 80%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -109,7 +104,6 @@
       margin: 15px auto 40px; 
       font-size: 17px;
       font-weight: 400;
-      transform: translateZ(30px);
     }
 
     /* --- RENDERER SECTION --- */
@@ -118,7 +112,6 @@
       max-width: 950px;
       margin: 40px auto;
       padding: 0 16px;
-      transform: translateZ(120px);
     }
 
     .renderer-container {
@@ -172,12 +165,11 @@
     }
     .fullscreen-btn:hover { opacity: 0.9; }
 
-    /* --- REST OF UI --- */
+    /* --- VIDEO PREVIEW --- */
     .hero-video-wrap {
       width: 100%;
       max-width: 900px;
       padding: 0 16px;
-      transform: translateZ(100px);
       margin-top: 60px;
     }
 
@@ -188,34 +180,8 @@
       box-shadow: 0 40px 100px rgba(0,0,0,0.55);
     }
 
-    figure {
-      width: 100%;
-      max-width: 900px; 
-      margin: 60px auto 20px;
-      padding: 0 16px;
-      transform: translateZ(80px);
-    }
-
-    figure img {
-      width: 100%;
-      height: auto;
-      border-radius: 12px;
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-      display: block;
-    }
-
-    figcaption {
-      margin-top: 14px;
-      font-size: 10px;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-    }
-
     .section-container {
       margin-top: 40px;
-      transform: translateZ(50px);
     }
 
     .section-header {
@@ -256,7 +222,7 @@
   <main class="viewport">
     <div class="interactive-content" id="card">
 
-      <h1><span class="title-grad" id="title">ModelMe</span></h1>
+      <h1><span class="title-grad">ModelMe</span></h1>
       <p class="desc">Dynamic clothing simulation rendered in real-time to fit your body</p>
 
       <!-- LIVE INTERACTIVE RENDERER -->
@@ -269,6 +235,7 @@
         </div>
       </div>
 
+      <!-- VIDEO PREVIEW RESTORED -->
       <div class="hero-video-wrap">
         <div class="section-header">Demo Preview</div>
         <video class="demo-video" autoplay muted loop playsinline preload="metadata">
@@ -276,11 +243,6 @@
           Your browser does not support the video tag.
         </video>
       </div>
-
-      <figure>
-        <img src="screenshot.png" alt="3D Virtual Try-On System Architecture" />
-        <figcaption>3D Virtual Try-On System Architecture</figcaption>
-      </figure>
 
       <div class="section-container">
         <p class="section-header">Founders</p>
@@ -297,24 +259,6 @@
   </main>
 
   <script>
-    const card = document.getElementById('card');
-    const title = document.getElementById('title');
-    const fittingFrame = document.getElementById('fitting-frame');
-
-    window.addEventListener('mousemove', e => {
-      const x = e.clientX / window.innerWidth;
-      const y = e.clientY / window.innerHeight;
-
-      const rx = (0.5 - y) * 7;
-      const ry = (x - 0.5) * 7;
-
-      card.style.setProperty('--rx', `${rx}deg`);
-      card.style.setProperty('--ry', `${ry}deg`);
-
-      const angle = 45 + (x * 90);
-      title.style.setProperty('--ga', `${angle}deg`);
-    });
-
     function toggleFullscreen() {
         const elem = document.getElementById('fitting-frame');
         if (elem.requestFullscreen) {
