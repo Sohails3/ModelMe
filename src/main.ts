@@ -107,7 +107,7 @@ let mannequin: THREE.Group | null = null;
 let modelOffset = 0;
 
 loader.load(
-  'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Xbot.glb',
+  'Xbot.glb',
   (gltf) => {
     mannequin = gltf.scene;
     const mat = new THREE.MeshStandardMaterial(CONFIG.mannequinMat);
