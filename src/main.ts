@@ -538,12 +538,21 @@ class TShirt {
       for (let i = 0; i < n; i++) {
         if (pinned[i]) continue;
 
-        // Torso vertical cylinder
+        // --- Anatomical Elliptical Torso ---
         if (py[i] > torsoHipY && py[i] < torsoTopY) {
-          const d2 = px[i] * px[i] + pz[i] * pz[i];
-          if (d2 > 0 && d2 < torsoR2) {
-            const s = torsoR / Math.sqrt(d2);
-            px[i] *= s; pz[i] *= s;
+          // X-radius is wider (wS * 1.15), Z-radius is shallower (wS * 0.85)
+          const rx = (TORSO_R + COLLISION_MARGIN) * (wS * 1.15);
+          const rz = (TORSO_R + COLLISION_MARGIN) * (wS * 0.85);
+          
+          // Use elliptical distance formula: (x/rx)^2 + (z/rz)^2 < 1
+          const normX = px[i] / rx;
+          const normZ = pz[i] / rz;
+          const d2 = normX * normX + normZ * normZ;
+          
+          if (d2 > 0 && d2 < 1) {
+            const s = 1 / Math.sqrt(d2);
+            px[i] *= s; 
+            pz[i] *= s;
             ppx[i] = px[i]; ppz[i] = pz[i];
           }
         }
@@ -609,7 +618,9 @@ function update() {
   if (labelWaist) labelWaist.textContent = Math.round(26  + waist * 20) + 'in';
 
   if (mannequin) {
-    mannequin.scale.set(wS, hS, wS);
+    // Alter the mannequin's shape to be broader in the shoulders (X) 
+    // and flatter in the chest (Z) to better fit a standard T-shirt.
+    mannequin.scale.set(wS * 1.15, hS, wS * 0.85);
     mannequin.position.y = modelOffset * hS;
   }
 
