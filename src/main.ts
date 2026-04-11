@@ -54,16 +54,16 @@ const SHOULDER_BASE_Y = 1.60;
 const TORSO_R     = 0.140;
 const TORSO_HIP_Y = 0.88;
 const TORSO_TOP_Y = 1.50;
-const ARM_R       = 0.095;      // Increased from 0.082 to better fill the sleeves
+const ARM_R       = 0.105;      // Increased further to fill the sleeves
 const SHOULDERS = [
-  [-0.152, 1.438, -0.050, -0.430, 1.438, -0.050],  // left  (shoulder→elbow)
-  [ 0.152, 1.438, -0.050,  0.430, 1.438, -0.050],  // right
+  [-0.152, 1.438, -0.050, -0.430, 1.438, -0.050],  // actual bone-to-bone coordinates
+  [ 0.152, 1.438, -0.050,  0.430, 1.438, -0.050],
 ] as const;
 const SHOULDER_SPHERES = [
   [-0.175, 1.435, -0.030],
   [ 0.175, 1.435, -0.030],
 ] as const;
-const SHOULDER_SPHERE_R = 0.098;
+const SHOULDER_SPHERE_R = 0.110; // Increased to fill shoulder cap
 
 // Welding tolerance – catches UV-split seam duplicates (increased for robustness).
 const WELD_TOL = 0.005;
