@@ -19,23 +19,20 @@ const GRAVITY = -9.8;          // m/s²
 const DRAG    = 0.92;          // 1 – damping; damping = 0.08
 const DT      = 1 / 60;
 const DT2     = DT * DT;
-const ITER    = 12;             // Increased for better constraint resolution
+const ITER    = 15;             // Increased for rock-solid collision
 // Invisible air gap added to every collision radius so fabric never touches skin.
-const COLLISION_MARGIN = 0.010; // Reduced from 0.022 for a tighter fit
+const COLLISION_MARGIN = 0.018; // Increased buffer to prevent clipping
 // Chest-region rest-length inflation: lets the pectoral area bloom outward
 // rather than clinging to the cylinder.
-const CHEST_BLOOM = 1.12;
+const CHEST_BLOOM = 1.15;
 
 // Shape spring: pulls each free vertex toward its fitted rest position.
-// Upper half (local Y > 0 – chest, shoulders, sleeves) needs a strong spring
-// to stay on the body.  Lower half (waist/hem) uses a weaker spring so gravity
-// can create a natural drape.
-const SHAPE_K_UPPER      = 260;  // Increased from 180 to pull fabric closer to arms
-const SHAPE_K_LOWER_TIGHT = 95;  // waist = 0  → sag ≈ 10 cm
-const SHAPE_K_LOWER_LOOSE = 38;  // waist = 1  → sag ≈ 26 cm
+const SHAPE_K_UPPER      = 220;  // Slightly softened to allow collision to push out
+const SHAPE_K_LOWER_TIGHT = 95;  
+const SHAPE_K_LOWER_LOOSE = 38;  
 
 // Collar pinning threshold (local Y).  Vertices above this are hard-pinned.
-const PIN_Y = 0.23;
+const PIN_Y = 0.25;
 
 // Shirt GLB measurements (local space, from accessor):
 const COLLAR_LOCAL_Y  = 0.261;
@@ -51,10 +48,10 @@ const SHOULDER_BASE_Y = 1.60;
 // Neck bone:        ( 0.0000, 1.5003, -0.0268)
 // Hips bone:        ( 0.0000, 1.0399,  0.0208)
 // Base geometry radii (body surface) + COLLISION_MARGIN applied at runtime.
-const TORSO_R     = 0.140;
-const TORSO_HIP_Y = 0.88;
-const TORSO_TOP_Y = 1.50;
-const ARM_R       = 0.105;      // Increased further to fill the sleeves
+const TORSO_R     = 0.145;      // Slightly wider torso
+const TORSO_HIP_Y = 0.85;       // Lower hip boundary
+const TORSO_TOP_Y = 1.52;       // Higher torso boundary
+const ARM_R       = 0.108;      
 const SHOULDERS = [
   [-0.152, 1.438, -0.050, -0.430, 1.438, -0.050],  // actual bone-to-bone coordinates
   [ 0.152, 1.438, -0.050,  0.430, 1.438, -0.050],
@@ -62,8 +59,9 @@ const SHOULDERS = [
 const SHOULDER_SPHERES = [
   [-0.175, 1.435, -0.030],
   [ 0.175, 1.435, -0.030],
+  [ 0.000, 1.520, -0.020],      // Added NECK collision sphere
 ] as const;
-const SHOULDER_SPHERE_R = 0.110; // Increased to fill shoulder cap
+const SHOULDER_SPHERE_R = 0.115; // Increased to fill shoulder cap
 
 // Welding tolerance – catches UV-split seam duplicates (increased for robustness).
 const WELD_TOL = 0.005;
@@ -177,29 +175,50 @@ class TShirt {
       gltf.scene.traverse(c => { if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh); });
       if (meshes.length === 0) return;
 
-      // Merge geometries if multiple exist
-      let geo: THREE.BufferGeometry;
-      if (meshes.length > 1) {
-        // Take the largest mesh which is usually the main shirt body
-        meshes.sort((a, b) => b.geometry.attributes.position.count - a.geometry.attributes.position.count);
-        geo = meshes[0].geometry.clone();
-      } else {
-        geo = meshes[0].geometry.clone();
+      // Merge all meshes from the GLB into a single simulation geometry
+      // We'll use the first mesh's matrix as our world reference
+      const rootMesh = meshes[0];
+      rootMesh.updateMatrixWorld();
+      const rootInv = rootMesh.matrixWorld.clone().invert();
+
+      const combinedPos: number[] = [];
+      const combinedIdx: number[] = [];
+      let vertOffset = 0;
+
+      for (const m of meshes) {
+        m.updateMatrixWorld();
+        // Transform geometry to rootMesh space
+        const mGeo = m.geometry.clone();
+        const mMat = m.matrixWorld.clone().premultiply(rootInv);
+        mGeo.applyMatrix4(mMat);
+
+        const posAttr = mGeo.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+          combinedPos.push(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+        }
+
+        const idxAttr = mGeo.index;
+        if (idxAttr) {
+          for (let i = 0; i < idxAttr.count; i++) {
+            combinedIdx.push(idxAttr.getX(i) + vertOffset);
+          }
+        }
+        vertOffset += posAttr.count;
       }
 
-      const srcMesh = meshes[0];
-      srcMesh.updateMatrixWorld();
-      geo.applyMatrix4(srcMesh.matrixWorld);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(combinedPos, 3));
+      geo.setIndex(combinedIdx);
+      geo.applyMatrix4(rootMesh.matrixWorld); // Move to world space
       geo.computeVertexNormals();
 
       this.mesh = new THREE.Mesh(
         geo,
         new THREE.MeshStandardMaterial({ ...CONFIG.clothMat, side: THREE.DoubleSide }),
       );
-      // Identity transform: geometry coords === world coords.
       scene.add(this.mesh);
 
-      // Cache local-space positions
+      // Cache particle count and local positions
       this.n = geo.attributes.position.count;
       this.localX = new Float32Array(this.n);
       this.localY = new Float32Array(this.n);
