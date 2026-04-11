@@ -173,13 +173,22 @@ class TShirt {
   // ── Load ──────────────────────────────────────────────────────────────────
   constructor() {
     loader.load('shirt.glb', (gltf) => {
-      let src: THREE.Mesh | null = null;
-      gltf.scene.traverse(c => { if ((c as THREE.Mesh).isMesh && !src) src = c as THREE.Mesh; });
-      if (!src) return;
-      const srcMesh = src as THREE.Mesh;
+      const meshes: THREE.Mesh[] = [];
+      gltf.scene.traverse(c => { if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh); });
+      if (meshes.length === 0) return;
 
+      // Merge geometries if multiple exist
+      let geo: THREE.BufferGeometry;
+      if (meshes.length > 1) {
+        // Take the largest mesh which is usually the main shirt body
+        meshes.sort((a, b) => b.geometry.attributes.position.count - a.geometry.attributes.position.count);
+        geo = meshes[0].geometry.clone();
+      } else {
+        geo = meshes[0].geometry.clone();
+      }
+
+      const srcMesh = meshes[0];
       srcMesh.updateMatrixWorld();
-      const geo = srcMesh.geometry.clone();
       geo.applyMatrix4(srcMesh.matrixWorld);
       geo.computeVertexNormals();
 
@@ -224,8 +233,7 @@ class TShirt {
   // ── Build constraints ──────────────────────────────────────────────────────
   // Two types:
   //  1. Structural – one per unique mesh edge (maintains fabric stretch resistance)
-  //  2. Welding    – zero-rest-length between spatially coincident vertices
-  //                  (repairs UV-split seams so the shirt is one continuous piece)
+  //  2. Welding    – DISABLE AGGRESSIVE WELDING TO PREVENT CLOSING HOLES
   private buildConstraints(geo: THREE.BufferGeometry) {
     const seen = new Set<string>();
     const edgesA: number[] = [];
@@ -246,23 +254,11 @@ class TShirt {
       }
     }
 
-    // 2. Welding edges – find vertices at identical positions (UV-split seams)
-    //    Use a spatial hash keyed on rounded position.
+    // 2. Disabled welding to prevent closing the neck hole
+    /*
     const inv  = 1 / WELD_TOL;
-    const weldMap = new Map<string, number>();
-    for (let i = 0; i < this.n; i++) {
-      const rx = Math.round(this.localX[i] * inv);
-      const ry = Math.round(this.localY[i] * inv);
-      const rz = Math.round(this.localZ[i] * inv);
-      const key = `${rx},${ry},${rz}`;
-      const existing = weldMap.get(key);
-      if (existing === undefined) {
-        weldMap.set(key, i);
-      } else {
-        // Link this duplicate to the first vertex seen at this position.
-        addEdge(existing, i);
-      }
-    }
+    ...
+    */
 
     this.nc        = edgesA.length;
     this.ca        = new Int32Array(edgesA);
