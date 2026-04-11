@@ -19,18 +19,18 @@ const GRAVITY = -9.8;          // m/s²
 const DRAG    = 0.92;          // 1 – damping; damping = 0.08
 const DT      = 1 / 60;
 const DT2     = DT * DT;
-const ITER    = 8;             // constraint solver iterations
+const ITER    = 12;             // Increased for better constraint resolution
 // Invisible air gap added to every collision radius so fabric never touches skin.
-const COLLISION_MARGIN = 0.022; // metres (≈ 2 cm of fabric + clearance)
+const COLLISION_MARGIN = 0.010; // Reduced from 0.022 for a tighter fit
 // Chest-region rest-length inflation: lets the pectoral area bloom outward
 // rather than clinging to the cylinder.
-const CHEST_BLOOM = 1.15;
+const CHEST_BLOOM = 1.12;
 
 // Shape spring: pulls each free vertex toward its fitted rest position.
 // Upper half (local Y > 0 – chest, shoulders, sleeves) needs a strong spring
 // to stay on the body.  Lower half (waist/hem) uses a weaker spring so gravity
 // can create a natural drape.
-const SHAPE_K_UPPER      = 180;  // equilibrium sag ≈ 9.8/180 ≈ 5 cm
+const SHAPE_K_UPPER      = 260;  // Increased from 180 to pull fabric closer to arms
 const SHAPE_K_LOWER_TIGHT = 95;  // waist = 0  → sag ≈ 10 cm
 const SHAPE_K_LOWER_LOOSE = 38;  // waist = 1  → sag ≈ 26 cm
 
@@ -54,7 +54,7 @@ const SHOULDER_BASE_Y = 1.60;
 const TORSO_R     = 0.140;
 const TORSO_HIP_Y = 0.88;
 const TORSO_TOP_Y = 1.50;
-const ARM_R       = 0.082;
+const ARM_R       = 0.095;      // Increased from 0.082 to better fill the sleeves
 const SHOULDERS = [
   [-0.152, 1.438, -0.050, -0.430, 1.438, -0.050],  // left  (shoulder→elbow)
   [ 0.152, 1.438, -0.050,  0.430, 1.438, -0.050],  // right
