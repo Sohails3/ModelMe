@@ -172,7 +172,7 @@ class TShirt {
 
   // ── Load ──────────────────────────────────────────────────────────────────
   constructor() {
-    loader.load('/shirt.glb', (gltf) => {
+    loader.load('shirt.glb', (gltf) => {
       let src: THREE.Mesh | null = null;
       gltf.scene.traverse(c => { if ((c as THREE.Mesh).isMesh && !src) src = c as THREE.Mesh; });
       if (!src) return;
