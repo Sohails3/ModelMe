@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ModelMe C# Simulation</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; background: #000; }
+        #app { width: 100%; height: 100%; }
+        #canvas-wrapper { width: 100vw; height: 100vh; position: relative; display: block; }
+        #main-canvas { display: block; width: 100%; height: 100%; }
+        #ui-overlay { pointer-events: none; z-index: 100; position: absolute; top: 20px; left: 20px; }
+        #ui-overlay input { pointer-events: auto; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: #555; font-family: sans-serif; background: #000;">
+            BOOTING BLAZOR C# WEB SIMULATION...
+        </div>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls, mannequin, clothMesh;
+        let blazorHelper;
+        let isSimReady = false;
+        let frameCount = 0;
+
+        function updateDebug(msg, color = "#0f0") {
+            const el = document.querySelector('#debug-status');
+            if (el) {
+                el.textContent = "Status: " + msg;
+                el.style.color = color;
+            }
+            console.log("SIM LOG:", msg);
+        }
+
+        window.initThreeJS = (dotNetHelper) => {
+            updateDebug("ThreeJS Initialization Started...");
+            blazorHelper = dotNetHelper;
+            
+            const canvas = document.querySelector('#main-canvas');
+            const wrapper = document.querySelector('#canvas-wrapper');
+            
+            if (!canvas) {
+                updateDebug("Fatal: Canvas not found in DOM!", "#f00");
+                return;
+            }
+
+            try {
+                renderer = new THREE.WebGLRenderer({ 
+                    canvas, 
+                    antialias: true,
+                    alpha: false,
+                    powerPreference: "high-performance"
+                });
+                renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setClearColor(0x0a0a0a, 1);
+                updateDebug("WebGL Enabled.");
+            } catch (e) {
+                updateDebug("WebGL CRASH: " + e.message, "#f00");
+                return;
+            }
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+
+            camera = new THREE.PerspectiveCamera(35, wrapper.clientWidth / wrapper.clientHeight, 0.1, 100);
+            camera.position.set(0, 1.2, 4.0);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 1.1, 0);
+
+            // Step 3: Emergency Lighting
+            scene.add(new THREE.GridHelper(20, 20, 0x444444, 0x222222));
+            const ambLight = new THREE.AmbientLight(0xffffff, 1.0);
+            scene.add(ambLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(5, 10, 7);
+            scene.add(dirLight);
+            updateDebug("Lighting Configured.");
+
+            // Step 4: Diagnostic Red Cube Test
+            const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+            const cubeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const redCube = new THREE.Mesh(cubeGeo, cubeMat);
+            redCube.position.set(0, 0.5, 0); // Sits on the grid
+            scene.add(redCube);
+            updateDebug("Diagnostic Red Cube Active.");
+
+            const loader = new THREE.GLTFLoader();
+
+            // Step 1: Asset Path Audit & Force-Load Mannequin
+            updateDebug("Assets: Loading Xbot.glb...");
+            loader.load('assets/Xbot.glb', (gltf) => {
+                updateDebug("Xbot.glb Load Success!");
+                scene.remove(redCube); // Remove diagnostic cube once mannequin loads
+                mannequin = gltf.scene;
+                
+                // Step 2: Coordinate & Scale Reset
+                mannequin.position.set(0, 0, 0);
+                mannequin.scale.set(1, 1, 1);
+                
+                mannequin.traverse(c => {
+                    if (c.isMesh) {
+                        c.material = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.7 });
+                    }
+                });
+                scene.add(mannequin);
+                
+                // Signal C#
+                blazorHelper.invokeMethodAsync('OnModelLoaded');
+                
+                const box = new THREE.Box3().setFromObject(mannequin);
+                console.log("Model Bounds Size:", box.getSize(new THREE.Vector3()));
+            }, undefined, (e) => {
+                updateDebug("Xbot.glb FAILED: " + e.message, "#f00");
+                console.error("Mannequin Path Audit Failed. Ensure file exists at wwwroot/assets/Xbot.glb");
+            });
+
+            // Step 1: Asset Path Audit & Force-Load T-Shirt
+            updateDebug("Assets: Loading shirt.glb...");
+            loader.load('assets/shirt.glb', (gltf) => {
+                updateDebug("shirt.glb Load Success!");
+                let shirtMesh;
+                gltf.scene.traverse(c => {
+                    if (c.isMesh && !shirtMesh) shirtMesh = c;
+                });
+
+                if (shirtMesh) {
+                    shirtMesh.updateMatrixWorld();
+                    const geo = shirtMesh.geometry.toNonIndexed();
+                    const pos = Array.from(geo.attributes.position.array);
+                    const mat = shirtMesh.matrixWorld;
+
+                    // World-space alignment
+                    for (let i = 0; i < pos.length; i += 3) {
+                        const v = new THREE.Vector3(pos[i], pos[i+1], pos[i+2]);
+                        v.applyMatrix4(mat);
+                        pos[i] = v.x; pos[i+1] = v.y; pos[i+2] = v.z;
+                    }
+
+                    const ind = Array.from({length: pos.length / 3}, (_, i) => i);
+                    
+                    blazorHelper.invokeMethodAsync('InitializeCloth', pos, ind)
+                        .then(() => {
+                            isSimReady = true;
+                            updateDebug("C# Simulation Bridge ACTIVE.");
+                        });
+
+                    const meshMat = new THREE.MeshStandardMaterial({ 
+                        color: 0xffffff, 
+                        vertexColors: true, 
+                        side: THREE.DoubleSide 
+                    });
+                    clothMesh = new THREE.Mesh(geo, meshMat);
+                    scene.add(clothMesh);
+                }
+            }, undefined, (e) => {
+                updateDebug("shirt.glb FAILED: " + e.message, "#f00");
+                console.error("Shirt Path Audit Failed. Ensure file exists at wwwroot/assets/shirt.glb");
+            });
+
+            animate();
+        };
+
+        window.updateBodyParams = (h, w, wa) => {
+            if (!mannequin) return;
+            const hS = 0.9 + h * 0.2, wS = 0.8 + w * 0.4;
+            mannequin.scale.set(wS, hS, wS);
+        };
+
+        window.updateMeshAttributes = (positions, colors) => {
+            if (!clothMesh) return;
+            const geo = clothMesh.geometry;
+            geo.attributes.position.array.set(positions);
+            geo.attributes.color.array.set(colors);
+            geo.attributes.position.needsUpdate = true;
+            geo.attributes.color.needsUpdate = true;
+            geo.computeVertexNormals();
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            frameCount++;
+            if (isSimReady && blazorHelper) {
+                blazorHelper.invokeMethod('StepSimulation', 0.016);
+            }
+            if (renderer) renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            if (!renderer) return;
+            const wrapper = document.querySelector('#canvas-wrapper');
+            renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
+            camera.aspect = wrapper.clientWidth / wrapper.clientHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+
+</html>

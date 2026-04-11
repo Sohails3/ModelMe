@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ModelMe | Studio Render</title>
+
+  <style>
+    :root {
+      --bg-top: #1a1a1c;
+      --bg-bottom: #0d0d0e;
+      --text: #e1e1e6;
+      --blue: #0A66FF;
+      --orange: #FF7A18;
+      --glass: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+
+    body {
+      background: radial-gradient(circle at 50% 40%, var(--bg-top) 0%, var(--bg-bottom) 100%);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      z-index: 0;
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(13, 13, 14, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--blue), var(--orange));
+    }
+
+    .nav-text {
+      font-weight: 600;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .viewport {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 100px 0 80px;
+      perspective: 1200px;
+    }
+
+    .interactive-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      max-width: 900px;
+      transform-style: preserve-3d;
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+      transition: transform 0.2s ease-out;
+    }
+
+    h1 {
+      font-size: clamp(40px, 8vw, 80px);
+      letter-spacing: -0.04em;
+      margin: 0;
+      font-weight: 800;
+      transform: translateZ(40px);
+    }
+
+    .title-grad {
+      background: linear-gradient(var(--ga, 95deg), #fff 20%, #888 50%, #fff 80%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .desc {
+      color: #888;
+      max-width: 520px;
+      margin: 15px auto 40px; 
+      font-size: 17px;
+      font-weight: 400;
+      transform: translateZ(30px);
+    }
+
+    /* --- RENDERER SECTION --- */
+    .renderer-section {
+      width: 100%;
+      max-width: 950px;
+      margin: 40px auto;
+      padding: 0 16px;
+      transform: translateZ(120px);
+    }
+
+    .renderer-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      background: #000;
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
+      overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+    }
+
+    .renderer-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .renderer-label {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: 1px solid var(--glass-border);
+      pointer-events: none;
+      color: #fff;
+    }
+
+    .fullscreen-btn {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: var(--blue);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        z-index: 10;
+    }
+    .fullscreen-btn:hover { opacity: 0.9; }
+
+    /* --- REST OF UI --- */
+    .hero-video-wrap {
+      width: 100%;
+      max-width: 900px;
+      padding: 0 16px;
+      transform: translateZ(100px);
+      margin-top: 60px;
+    }
+
+    .demo-video {
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.55);
+    }
+
+    figure {
+      width: 100%;
+      max-width: 900px; 
+      margin: 60px auto 20px;
+      padding: 0 16px;
+      transform: translateZ(80px);
+    }
+
+    figure img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      display: block;
+    }
+
+    figcaption {
+      margin-top: 14px;
+      font-size: 10px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    .section-container {
+      margin-top: 40px;
+      transform: translateZ(50px);
+    }
+
+    .section-header {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      color: #555;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .pill-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .pill {
+      padding: 6px 14px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #aaa;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="noise"></div>
+
+  <header class="nav">
+    <div class="nav-logo"></div>
+    <span class="nav-text">ModelMe</span>
+  </header>
+
+  <main class="viewport">
+    <div class="interactive-content" id="card">
+
+      <h1><span class="title-grad" id="title">ModelMe</span></h1>
+      <p class="desc">Dynamic clothing simulation rendered in real-time to fit your body</p>
+
+      <!-- LIVE INTERACTIVE RENDERER -->
+      <div class="renderer-section">
+        <div class="section-header">Live Interactive Tool</div>
+        <div class="renderer-container" id="renderer-box">
+          <div class="renderer-label">Real-time WebGL Engine</div>
+          <iframe class="renderer-iframe" src="renderer.html" id="fitting-frame"></iframe>
+          <button class="fullscreen-btn" onclick="toggleFullscreen()">Full Screen</button>
+        </div>
+      </div>
+
+      <div class="hero-video-wrap">
+        <div class="section-header">Demo Preview</div>
+        <video class="demo-video" autoplay muted loop playsinline preload="metadata">
+          <source src="Mannequin_T_Shirt_Dressing_Animation.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <figure>
+        <img src="screenshot.png" alt="3D Virtual Try-On System Architecture" />
+        <figcaption>3D Virtual Try-On System Architecture</figcaption>
+      </figure>
+
+      <div class="section-container">
+        <p class="section-header">Founders</p>
+        <div class="pill-grid">
+          <span class="pill">Sohail</span>
+          <span class="pill">Louis</span>
+          <span class="pill">Aaren</span>
+          <span class="pill">Mitri</span>
+          <span class="pill">Hazeem</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const card = document.getElementById('card');
+    const title = document.getElementById('title');
+    const fittingFrame = document.getElementById('fitting-frame');
+
+    window.addEventListener('mousemove', e => {
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+
+      const rx = (0.5 - y) * 7;
+      const ry = (x - 0.5) * 7;
+
+      card.style.setProperty('--rx', `${rx}deg`);
+      card.style.setProperty('--ry', `${ry}deg`);
+
+      const angle = 45 + (x * 90);
+      title.style.setProperty('--ga', `${angle}deg`);
+    });
+
+    function toggleFullscreen() {
+        const elem = document.getElementById('fitting-frame');
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE11 */
+            elem.msRequestFullscreen();
+        }
+    }
+  </script>
+</body>
+</html>

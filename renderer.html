@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Model.me MVP | Virtual Fitting</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="sidebar">
+        <header>
+          <h1>Model.me</h1>
+          <div class="status-dot"></div>
+        </header>
+
+        <section class="controls">
+          <div class="control-group">
+            <label>Height <span id="h-val">175cm</span></label>
+            <input type="range" id="height-slider" min="0" max="1" step="0.01" value="0.5">
+          </div>
+          <div class="control-group">
+            <label>Weight <span id="w-val">75kg</span></label>
+            <input type="range" id="weight-slider" min="0" max="1" step="0.01" value="0.5">
+          </div>
+          <div class="control-group">
+            <label>Waist <span id="wa-val">32in</span></label>
+            <input type="range" id="waist-slider" min="0" max="1" step="0.01" value="0.5">
+          </div>
+        </section>
+
+        <button id="reset-view">Reset View</button>
+      </div>
+      <div id="canvas-wrapper">
+        <canvas id="main-canvas"></canvas>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

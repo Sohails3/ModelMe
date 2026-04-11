@@ -1,0 +1,25 @@
+{
+  "name": "model-me-mvp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "qa": "node qa_loop.js",
+    "vision-loop": "node vision_loop.js"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.40.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@types/three": "^0.183.1",
+    "cannon-es": "^0.20.0",
+    "gsap": "^3.14.2",
+    "playwright-core": "^1.58.2",
+    "three": "^0.183.2"
+  }
+}
